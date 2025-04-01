@@ -1,5 +1,9 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+import datetime, os
+from docxtpl import DocxTemplate
+from docx2pdf import convert
+from tkinter import ttk, messagebox, filedialog
+from pathlib import Path
 
 # SystemConfig
 app = tk.Tk()
@@ -8,17 +12,28 @@ app.title ("PresGen V1.1")
 app.config (bg="grey")
 
 # Varibles / Lists / Misc
+idfile = Path("./files/id.txt")
+t = datetime.datetime.now()
+pid = 000000000
 repuestos = []
 pres_list = []
 precios = {}
 
-with open("./files/repuestos.csv") as csv_file:
+with open("./files/repuestos.csv", encoding='utf-8', errors='ignore') as csv_file:
     for line in csv_file:
         data = line.strip().split(',')
         if len(data) == 2:  # Asegurar que hay dos elementos (nombre y precio)
             repuestos.append(data[0])  # Agregar el nombre del repuesto
             precios[data[0]] = data[1]  # Guardar precio asociado al repuesto
 
+if os.path.exists(idfile):
+    with open(idfile, "r", encoding="utf-8") as f:
+        content = f.read().strip()
+        pid = int(content) if content.isdigit() else 000000000
+else: 
+    with open(idfile, "w", encoding="utf-8") as f:
+        f.write('000000000')
+        pid = 000000000
 
 def upd_precio(event):
     rs = e12.get()  # Obtener el repuesto seleccionado
@@ -30,14 +45,35 @@ def clear_item() :
     e11.delete(0, tk.END)
     e12.delete(0, tk.END)
     ep.delete(0, tk.END)
-    e13.delete(0, tk.END)
+    ee.delete(0, tk.END)
+
+def new_pres() :
+    e1.delete(0, tk.END)
+    e2.delete(0, tk.END)
+    e3.delete(0, tk.END)
+    e4.delete(0, tk.END)
+    e5.delete(0, tk.END)
+    e6.delete(0, tk.END)
+    e7.delete(0, tk.END)
+    e8.delete(0, tk.END)
+    e9.delete(0, tk.END)
+    e10.delete(0, tk.END)
+    e11.delete(0, tk.END)
+    e12.delete(0, tk.END)
+    ep.delete(0, tk.END)
+    ee.delete(0, tk.END)
+    eid.delete(0, tk.END)
+    clear_item()
+    tree.delete(*tree.get_children())
+
+    pres_list.clear()
 
 def add_item() :
     try: 
         cantidad = int(e11.get())
         repuestos = e12.get()
         unitario = float(ep.get())
-        ab = e13.get()
+        ab = ee.get()
         precio = unitario * cantidad
         pres_items = [cantidad, repuestos, unitario, ab, precio]
         tree.insert('', 0, values = pres_items)
@@ -47,6 +83,66 @@ def add_item() :
         messagebox.showinfo(message = "Tenes que ingresar todos los valores!", title = "AVISO!")
     
     pres_list.append(pres_items)
+
+def gen_pres() :
+    global pid
+    doc = DocxTemplate("./files/Pres_Template.docx")
+
+    pid_text = eid.get().strip()
+    pid = int(pid_text) if pid_text.isdigit() else 0
+
+    nya = e1.get() + " " + e2.get()
+    domicilio = e3.get()
+    telefono = e4.get()
+    vehiculo = e5.get()
+    marca = e6.get()
+    modelo = e7.get()
+    nmotor = e8.get()
+    nchasis = e9.get()
+    dominio = e10.get()
+    pid = int(eid.get())
+    d = t.strftime("%d")
+    m = t.strftime("%m")
+    y = t.strftime("%Y")
+    subtotal = sum(item[4] for item in pres_list)
+    total = subtotal * 1.21 
+
+    doc.render({"nya": nya,
+               "domicilio": domicilio,
+               "telefono": telefono,
+               "vehiculo": vehiculo,
+               "marca": marca,
+               "modelo": modelo,
+               "nmotor": nmotor,
+               "nchasis": nchasis,
+               "dominio": dominio,
+               "subtotal": subtotal,
+               "total": total,
+               "pid": pid,
+               "d": d,
+               "m": m,
+               "y": y,
+               "pres_list": pres_list
+                })
+    
+    messagebox.showinfo("!!!AVISO!!!", "Seleccione la carpeta donde desea guardar los presupuestos")
+    file = filedialog.askdirectory()
+    doc_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
+    doc_path = os.path.join(file, doc_name)
+    doc.save(doc_path)
+    convert(doc_path, doc_path.replace(".docx", ".pdf"))
+    os.remove(doc_path)
+    messagebox.showinfo("!!!AVISO!!!", "Presupuesto Generado!")
+    
+    pid += 1
+
+    with open(idfile, "w", encoding="utf-8") as f:
+        f.write(str(pid))
+    
+    eid.delete(0, tk.END)
+    eid.insert(0, str(pid))
+    new_pres()
+
 
 # Frame(s)
 frame1 = tk.Frame (app, width = 100, height = 100, borderwidth = 1, relief = "solid")
@@ -109,17 +205,25 @@ e10.grid(row= 9, column= 1, padx = 10, pady = 5)
 
 # Entry - Datos
 e11 = ttk.Entry(frame2)
-e12 = ttk.Combobox(frame2, values= repuestos)
+e12 = ttk.Combobox(frame2, width= 30, values= repuestos)
 e12.bind("<<ComboboxSelected>>", upd_precio)
+e12.configure(state='readonly')
 e11.grid(row= 1, column= 1, padx = 10, pady = 5)
 e12.grid(row= 1, column= 2, padx = 10, pady = 5)
 
 ep = ttk.Entry(frame2)
 ep.grid(row= 1, column= 3, padx = 10, pady = 5)
-el = tk.Label(frame2, text="Estado:")
-el.grid(row= 0, column= 4, padx = 10, pady = 5)
+le = tk.Label(frame2, text="Estado:")
+le.grid(row= 0, column= 4, padx = 10, pady = 5)
 ee = ttk.Combobox(frame2, values= ["A: Reponer", "B: Reparar"])
+ee.configure(state='readonly')
 ee.grid(row= 1, column= 4, padx = 10, pady = 5)
+lid = tk.Label(frame2, text= "ID:")
+lid.grid(row= 6, column= 0)
+eid = ttk.Entry(frame2)
+eid.insert(0, str(pid))
+e12.configure(state='readonly')
+eid.grid(row= 6, column= 1, pady= 5)
 
 # Treeview
 headers = ("Cantidad", "Repuestos", "Unitario", "A/B", "Total")
@@ -129,9 +233,11 @@ tree.heading("Repuestos", text="Repuestos")
 tree.heading("Unitario", text="Unitario")
 tree.heading("A/B", text="A/B")
 tree.heading("Total", text="Total")
-tree.grid (row = 2, columnspan = 6, pady = 10, padx = 10)
+tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
 addb = ttk.Button(frame2, text = "Agregar", command = add_item)
 addb.grid(row= 2, column= 6, padx = 10, pady = 10)
+genb = ttk.Button(frame2, text= "Generar", command= gen_pres)
+genb.grid(row= 3, column= 6, padx = 10, pady = 10)
 
 # Frame-Packs
 frame1.pack(side = "left", padx = 20, pady = 20)
