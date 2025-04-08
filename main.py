@@ -2,8 +2,9 @@ import tkinter as tk
 import datetime, os
 from docxtpl import DocxTemplate
 from docx2pdf import convert
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, Toplevel
 from pathlib import Path
+from ddbb import nventana
 
 # SystemConfig
 app = tk.Tk()
@@ -14,7 +15,7 @@ app.config (bg="grey")
 # Varibles / Lists / Misc
 idfile = Path("./files/id.txt")
 t = datetime.datetime.now()
-pid = 000000000
+pid = 0
 repuestos = []
 pres_list = []
 precios = {}
@@ -29,11 +30,11 @@ with open("./files/repuestos.csv", encoding='utf-8', errors='ignore') as csv_fil
 if os.path.exists(idfile):
     with open(idfile, "r", encoding="utf-8") as f:
         content = f.read().strip()
-        pid = int(content) if content.isdigit() else 000000000
+        pid = int(content) if content.isdigit() else 0
 else: 
     with open(idfile, "w", encoding="utf-8") as f:
-        f.write('000000000')
-        pid = 000000000
+        f.write('0')
+        pid = 0
 
 def upd_precio(event):
     rs = e12.get()  # Obtener el repuesto seleccionado
@@ -62,7 +63,6 @@ def new_pres() :
     e12.delete(0, tk.END)
     ep.delete(0, tk.END)
     ee.delete(0, tk.END)
-    eid.delete(0, tk.END)
     clear_item()
     tree.delete(*tree.get_children())
 
@@ -86,11 +86,8 @@ def add_item() :
 
 def gen_pres() :
     global pid
+    global eid
     doc = DocxTemplate("./files/Pres_Template.docx")
-
-    pid_text = eid.get().strip()
-    pid = int(pid_text) if pid_text.isdigit() else 0
-
     nya = e1.get() + " " + e2.get()
     domicilio = e3.get()
     telefono = e4.get()
@@ -100,7 +97,7 @@ def gen_pres() :
     nmotor = e8.get()
     nchasis = e9.get()
     dominio = e10.get()
-    pid = int(eid.get())
+    pid = pid
     d = t.strftime("%d")
     m = t.strftime("%m")
     y = t.strftime("%Y")
@@ -127,6 +124,12 @@ def gen_pres() :
     
     messagebox.showinfo("!!!AVISO!!!", "Seleccione la carpeta donde desea guardar los presupuestos")
     file = filedialog.askdirectory()
+
+    if not file:
+        messagebox.showwarning("!!!AVISO!!!", "No se selecciono una carpeta")
+        return
+
+
     doc_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
     doc_path = os.path.join(file, doc_name)
     doc.save(doc_path)
@@ -138,11 +141,11 @@ def gen_pres() :
 
     with open(idfile, "w", encoding="utf-8") as f:
         f.write(str(pid))
-    
-    eid.delete(0, tk.END)
-    eid.insert(0, str(pid))
-    new_pres()
 
+    eid.delete(0, tk.END)
+    eid.insert(0, pid)
+
+    new_pres()
 
 # Frame(s)
 frame1 = tk.Frame (app, width = 100, height = 100, borderwidth = 1, relief = "solid")
@@ -191,6 +194,7 @@ e7 = ttk.Entry(frame1)
 e8 = ttk.Entry(frame1)
 e9 = ttk.Entry(frame1)
 e10 = ttk.Entry(frame1)
+bb = ttk.Button(frame1, text= "Buscar", command= nventana)
 
 e1.grid(row= 0, column= 1, padx = 10, pady = 5)
 e2.grid(row= 1, column= 1, padx = 10, pady = 5)
@@ -202,6 +206,7 @@ e7.grid(row= 6, column= 1, padx = 10, pady = 5)
 e8.grid(row= 7, column= 1, padx = 10, pady = 5)
 e9.grid(row= 8, column= 1, padx = 10, pady = 5)
 e10.grid(row= 9, column= 1, padx = 10, pady = 5)
+bb.grid(row= 10, column= 1, padx = 10, pady = 5)
 
 # Entry - Datos
 e11 = ttk.Entry(frame2)
@@ -233,6 +238,8 @@ tree.heading("Repuestos", text="Repuestos")
 tree.heading("Unitario", text="Unitario")
 tree.heading("A/B", text="A/B")
 tree.heading("Total", text="Total")
+tree.tag_configure("odd", background= "#F5F5F5")
+tree.tag_configure("even", background= "#FFFFFF")
 tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
 addb = ttk.Button(frame2, text = "Agregar", command = add_item)
 addb.grid(row= 2, column= 6, padx = 10, pady = 10)
