@@ -8,6 +8,7 @@ cur = conn.cursor()
 cur.execute(''' CREATE TABLE IF NOT EXISTS clientes
             (id INTEGER PRIMARY KEY, pres_id INT, nombre TEXT, apellido TEXT, path TEXT, fecha TEXT)''')
 
+<<<<<<< HEAD
 def buscar() : 
     nya = str(e1.get())
     pid = e2.get()
@@ -18,17 +19,24 @@ def buscar() :
         
 def nventana() :
     global e1, e2, tree
+=======
+def nventana() :
+>>>>>>> 17aaf1b07075f0a26ca4d3c234e2012cadd9c041
     ventana = Toplevel()
     ventana.title("Busqueda de Cliente")
     ventana.config(width= 300, height= 200, bg= "grey")
 
     framea = tk.Frame(ventana, width= 100, height= 100, borderwidth = 1, relief = "solid")
 
+<<<<<<< HEAD
     # Buttons - Labels
+=======
+>>>>>>> 17aaf1b07075f0a26ca4d3c234e2012cadd9c041
     l1 = ttk.Label(framea, text= "Nombre/Apellido: ")
     l2 = ttk.Label(framea, text= "ID: ")
     e1 = ttk.Entry(framea)
     e2 = ttk.Entry(framea)
+<<<<<<< HEAD
     b1  = ttk.Button(framea, text= "Buscar", command= buscar)
     b1.grid(column= 4, row= 1)
 
@@ -46,5 +54,11 @@ def nventana() :
     l2.grid (column= 2, row= 1, padx= 5, pady= 15)
     e1.grid (column= 1, row= 1, padx= 5, pady= 15)
     e2.grid (column= 3, row= 1, padx= 5, pady= 15)
+=======
+    l1.grid (column= 0, row= 1, padx= 10, pady= 5)
+    l2.grid (column= 2, row= 1, padx= 10, pady= 5)
+    e1.grid (column= 1, row= 1, padx= 10, pady= 5)
+    e2.grid (column= 3, row= 1, padx= 10, pady= 5)
+>>>>>>> 17aaf1b07075f0a26ca4d3c234e2012cadd9c041
 
     framea.grid(column= 0, row= 0, padx= 20, pady= 20)
