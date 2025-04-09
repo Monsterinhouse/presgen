@@ -38,6 +38,7 @@ def caps(event) :
     caps.set(caps.get().upper())
 
 with open("./files/repuestos.csv", encoding='utf-8', errors='ignore') as csv_file:
+    next(csv_file)
     for line in csv_file:
         data = line.strip().split(',')
         if len(data) == 2:  # Asegurar que hay dos elementos (nombre y precio)
