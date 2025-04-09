@@ -1,10 +1,23 @@
 import tkinter as tk
 import datetime, os
+import sqlite3
 from docxtpl import DocxTemplate
 from docx2pdf import convert
-from tkinter import ttk, messagebox, filedialog, Toplevel
+from tkinter import ttk, messagebox, filedialog 
 from pathlib import Path
 from ddbb import nventana
+
+# DDBB Conx
+conn = sqlite3.connect('presdb.db')
+cur = conn.cursor()
+
+def query() :
+    values = ('''INSERT INTO clientes (pres_id, nombre, apellido, path, fecha)
+                VALUES (?, ?, ?, ?, ?)''')
+    d_tuple = (pid, e1.get().upper(), e2.get().upper(), doc_path, t.strftime("%d/%m/%Y"))
+    cur.execute(values, d_tuple)
+    conn.commit()
+    cur.close()
 
 # SystemConfig
 app = tk.Tk()
@@ -19,6 +32,10 @@ pid = 0
 repuestos = []
 pres_list = []
 precios = {}
+caps = str()
+
+def caps(event) :
+    caps.set(caps.get().upper())
 
 with open("./files/repuestos.csv", encoding='utf-8', errors='ignore') as csv_file:
     for line in csv_file:
@@ -85,15 +102,14 @@ def add_item() :
     pres_list.append(pres_items)
 
 def gen_pres() :
-    global pid
-    global eid
+    global pid, eid, doc_path
     doc = DocxTemplate("./files/Pres_Template.docx")
-    nya = e1.get() + " " + e2.get()
-    domicilio = e3.get()
+    nya = e1.get().upper() + " " + e2.get().upper()
+    domicilio = e3.get().upper()
     telefono = e4.get()
-    vehiculo = e5.get()
-    marca = e6.get()
-    modelo = e7.get()
+    vehiculo = e5.get().upper()
+    marca = e6.get().upper()
+    modelo = e7.get().upper()
     nmotor = e8.get()
     nchasis = e9.get()
     dominio = e10.get()
@@ -122,11 +138,11 @@ def gen_pres() :
                "pres_list": pres_list
                 })
     
-    messagebox.showinfo("!!!AVISO!!!", "Seleccione la carpeta donde desea guardar los presupuestos")
+    messagebox.showinfo("AVISO!", "Seleccione la carpeta donde desea guardar los presupuestos")
     file = filedialog.askdirectory()
 
     if not file:
-        messagebox.showwarning("!!!AVISO!!!", "No se selecciono una carpeta")
+        messagebox.showwarning("AVISO!", "No se selecciono una carpeta")
         return
 
 
@@ -145,6 +161,7 @@ def gen_pres() :
     eid.delete(0, tk.END)
     eid.insert(0, pid)
 
+    query()
     new_pres()
 
 # Frame(s)
@@ -184,16 +201,16 @@ l12.grid(row= 0, column= 2, padx = 10, pady = 5)
 l13.grid(row= 0, column= 3, padx = 10, pady = 5)
 
 # Entry - Info
-e1 = ttk.Entry(frame1)
-e2 = ttk.Entry(frame1)
-e3 = ttk.Entry(frame1)
+e1 = ttk.Entry(frame1, textvariable= caps)
+e2 = ttk.Entry(frame1, textvariable= caps)
+e3 = ttk.Entry(frame1, textvariable= caps)
 e4 = ttk.Entry(frame1)
-e5 = ttk.Entry(frame1)
-e6 = ttk.Entry(frame1)
+e5 = ttk.Entry(frame1, textvariable= caps)
+e6 = ttk.Entry(frame1, textvariable= caps)
 e7 = ttk.Entry(frame1)
 e8 = ttk.Entry(frame1)
 e9 = ttk.Entry(frame1)
-e10 = ttk.Entry(frame1)
+e10 = ttk.Entry(frame1, textvariable= caps)
 bb = ttk.Button(frame1, text= "Buscar", command= nventana)
 
 e1.grid(row= 0, column= 1, padx = 10, pady = 5)
@@ -231,13 +248,13 @@ e12.configure(state='readonly')
 eid.grid(row= 6, column= 1, pady= 5)
 
 # Treeview
-headers = ("Cantidad", "Repuestos", "Unitario", "A/B", "Total")
+headers = ("CANTIDAD", "REPUESTOS", "UNITARIO", "A/B", "TOTAL")
 tree = ttk.Treeview(frame2, columns=headers, show="headings")
-tree.heading("Cantidad", text="Cantidad")
-tree.heading("Repuestos", text="Repuestos")
-tree.heading("Unitario", text="Unitario")
+tree.heading("CANTIDAD", text="CANTIDAD")
+tree.heading("REPUESTOS", text="REPUESTOS")
+tree.heading("UNITARIO", text="UNITARIO")
 tree.heading("A/B", text="A/B")
-tree.heading("Total", text="Total")
+tree.heading("TOTAL", text="TOTAL")
 tree.tag_configure("odd", background= "#F5F5F5")
 tree.tag_configure("even", background= "#FFFFFF")
 tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
