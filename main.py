@@ -4,6 +4,7 @@ import sqlite3
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from tkinter import ttk, messagebox, filedialog 
+from ttkwidgets.autocomplete import AutocompleteEntry
 from pathlib import Path
 from ddbb import nventana
 
@@ -33,9 +34,11 @@ repuestos = []
 pres_list = []
 precios = {}
 caps = str()
+rf = open("./files/repuestos.csv", encoding='utf-8', errors='ignore')
 
 def caps(event) :
     caps.set(caps.get().upper())
+
 
 with open("./files/repuestos.csv", encoding='utf-8', errors='ignore') as csv_file:
     next(csv_file)
@@ -53,12 +56,6 @@ else:
     with open(idfile, "w", encoding="utf-8") as f:
         f.write('0')
         pid = 0
-
-def upd_precio(event):
-    rs = e12.get()  # Obtener el repuesto seleccionado
-    precio = precios.get(rs, "N/A")  # Obtener el precio o 'N/A' si no existe
-    ep.delete(0, tk.END)  # Borrar el contenido previo
-    ep.insert(0, precio)  # Insertar el nuevo precio
 
 def clear_item() :
     e11.delete(0, tk.END)
@@ -101,6 +98,29 @@ def add_item() :
         messagebox.showinfo(message = "Tenes que ingresar todos los valores!", title = "AVISO!")
     
     pres_list.append(pres_items)
+
+def del_item() :
+    focus_item = tree.focus()
+    if not focus_item : 
+        messagebox.showwarning("AVISO!", "No hay ningun item seleccionado")
+        return
+
+    item_values = tree.item(focus_item, 'values')
+    try :
+        cantidad = int(item_values[0])
+        repuesto = item_values[1]
+        unitario = float(item_values[2])
+        estado = item_values[3]
+        total = float(item_values[4])
+
+        pres_list.remove([cantidad, repuesto, unitario, estado, total])
+    
+        tree.delete(focus_item)
+
+    except ValueError:
+        pass
+    except Exception as e:
+         messagebox.showerror("Error", f"Ocurrió un error al eliminar el ítem: {e}")
 
 def gen_pres() :
     global pid, eid, doc_path
@@ -228,9 +248,8 @@ bb.grid(row= 10, column= 1, padx = 10, pady = 5)
 
 # Entry - Datos
 e11 = ttk.Entry(frame2)
-e12 = ttk.Combobox(frame2, width= 30, values= repuestos)
-e12.bind("<<ComboboxSelected>>", upd_precio)
-e12.configure(state='readonly')
+e12 = AutocompleteEntry (frame2, completevalues=rf)
+e12.configure(state='normal')
 e11.grid(row= 1, column= 1, padx = 10, pady = 5)
 e12.grid(row= 1, column= 2, padx = 10, pady = 5)
 
@@ -245,7 +264,6 @@ lid = tk.Label(frame2, text= "ID:")
 lid.grid(row= 6, column= 0)
 eid = ttk.Entry(frame2)
 eid.insert(0, str(pid))
-e12.configure(state='readonly')
 eid.grid(row= 6, column= 1, pady= 5)
 
 # Treeview
@@ -261,8 +279,10 @@ tree.tag_configure("even", background= "#FFFFFF")
 tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
 addb = ttk.Button(frame2, text = "Agregar", command = add_item)
 addb.grid(row= 2, column= 6, padx = 10, pady = 10)
+delb = ttk.Button(frame2, text= "Eliminar", command= del_item)
+delb.grid(row= 3, column= 6, padx= 10, pady= 10)
 genb = ttk.Button(frame2, text= "Generar", command= gen_pres)
-genb.grid(row= 3, column= 6, padx = 10, pady = 10)
+genb.grid(row= 4, column= 6, padx = 10, pady = 10)
 
 # Frame-Packs
 frame1.pack(side = "left", padx = 20, pady = 20)
