@@ -2,7 +2,7 @@ import sqlite3
 import tkinter as tk
 from tkinter import ttk, Toplevel, messagebox
 
-conn = sqlite3.connect('presdb.db')
+conn = sqlite3.connect('./files/presdb.db')
 cur = conn.cursor()
 
 cur.execute(''' CREATE TABLE IF NOT EXISTS clientes

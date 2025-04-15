@@ -1,15 +1,16 @@
 import tkinter as tk
-import datetime, os
-import sqlite3
+import ttkbootstrap as ttk
+import datetime, os, sqlite3
 from docxtpl import DocxTemplate
 from docx2pdf import convert
-from tkinter import ttk, messagebox, filedialog 
-from ttkwidgets.autocomplete import AutocompleteEntry
+from tkinter import messagebox, filedialog, Toplevel
+from ttkwidgets.autocomplete import *
 from pathlib import Path
 from ddbb import nventana
+from ttkbootstrap.constants import *
 
 # DDBB Conx
-conn = sqlite3.connect('presdb.db')
+conn = sqlite3.connect('./files/presdb.db')
 cur = conn.cursor()
 
 def query() :
@@ -24,6 +25,8 @@ def query() :
 app = tk.Tk()
 app.geometry ("1500x600")
 app.title ("PresGen V1.0")
+app.resizable (False, False)
+style = ttk.Style ("flatly")
 app.config (bg="grey")
 
 # Varibles / Lists / Misc
@@ -32,21 +35,17 @@ t = datetime.datetime.now()
 pid = 0
 repuestos = []
 pres_list = []
-precios = {}
 caps = str()
-rf = open("./files/repuestos.csv", encoding='utf-8', errors='ignore')
 
 def caps(event) :
     caps.set(caps.get().upper())
-
 
 with open("./files/repuestos.csv", encoding='utf-8', errors='ignore') as csv_file:
     next(csv_file)
     for line in csv_file:
         data = line.strip().split(',')
-        if len(data) == 2:  # Asegurar que hay dos elementos (nombre y precio)
+        if len(data) == 1:  
             repuestos.append(data[0])  # Agregar el nombre del repuesto
-            precios[data[0]] = data[1]  # Guardar precio asociado al repuesto
 
 if os.path.exists(idfile):
     with open(idfile, "r", encoding="utf-8") as f:
@@ -122,6 +121,79 @@ def del_item() :
     except Exception as e:
          messagebox.showerror("Error", f"Ocurrió un error al eliminar el ítem: {e}")
 
+def upd_ventana() :
+    focus_item = tree.focus()
+    if not focus_item : 
+        messagebox.showwarning("AVISO!", "No hay ningun item seleccionado")
+        return
+    
+    item_values = tree.item(focus_item, 'values')
+    try :
+        ncantidad = int(item_values[0])
+        nrepuesto = item_values[1]
+        nunitario = float(item_values[2])
+        nestado = item_values[3]
+        total = float(item_values[4])
+
+        ventana = Toplevel()
+        ventana.title("Modificar Item")
+        ventana.config(width= 300, height= 200, bg= "grey")
+        nframe = tk.Frame(ventana, width= 100, height= 100, borderwidth = 1, relief = "solid")
+
+        nl1 = ttk.Label(nframe, text= "Cantidad:")
+        nl2 = ttk.Label(nframe, text= "Repuesto:")
+        nl3 = ttk.Label(nframe, text= "Unitario:")
+        nl4 = ttk.Label(nframe, text= "Estado:")
+        nl1.grid(row= 0, column= 0, padx = 10, pady = 10)
+        nl2.grid(row= 0, column= 1, padx = 10, pady = 10)
+        nl3.grid(row= 2, column= 0, padx = 10, pady = 10)
+        nl4.grid(row= 2, column= 1, padx = 10, pady = 10)
+
+        ne1 = ttk.Entry(nframe)
+        ne1.insert(0,ncantidad)
+        ne2 = AutocompleteCombobox(nframe, completevalues=repuestos, width= 30)
+        ne2.insert(0,nrepuesto)
+        ne3 = ttk.Entry(nframe)
+        ne3.insert(0,nunitario)
+        ne4 = ttk.Combobox(nframe, values= ["A: Reponer", "B: Reparar"], bootstyle= "dark")
+        ne4.insert(0,nestado)
+
+        ne1.grid(row= 1, column= 0, padx = 10, pady = 10)
+        ne2.grid(row= 1, column= 1, padx = 10, pady = 10)
+        ne3.grid(row= 3, column= 0, padx = 10, pady = 10)
+        ne4.grid(row= 3, column= 1, padx = 10, pady = 10)
+
+        def upd_item() :
+                new1 = int(ne1.get())
+                new2 = ne2.get()
+                new3 = float(ne3.get())
+                new4 = ne4.get()
+                new5 = new1 * new3
+                if not new1 or not new2 or not new3 or not new4 :
+                    messagebox.showerror("Error", "Todos los campos son obligartorios")
+                    return
+                try:
+                    int(new1)
+                    str(new2)
+                    float(new3)
+                except ValueError as e:
+                    messagebox.showerror("Error", f"{e}")
+                    return
+                
+                tree.item(focus_item, values=(new1, new2, new3, new4, new5))
+                ventana.destroy()
+
+        nb = ttk.Button(nframe, text= "Modificar", command= upd_item)
+        nb.grid(row= 4, column= 0, columnspan= 2, padx= 10, pady= 10)
+
+        nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
+    
+    except ValueError:
+        pass
+    except Exception as e:
+        messagebox.showerror("Error", f"Ocurrió un error al modificar el ítem: {e}")
+
+
 def gen_pres() :
     global pid, eid, doc_path
     doc = DocxTemplate("./files/Pres_Template.docx")
@@ -165,7 +237,6 @@ def gen_pres() :
     if not file:
         messagebox.showwarning("AVISO!", "No se selecciono una carpeta")
         return
-
 
     doc_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
     doc_path = os.path.join(file, doc_name)
@@ -222,16 +293,16 @@ l12.grid(row= 0, column= 2, padx = 10, pady = 5)
 l13.grid(row= 0, column= 3, padx = 10, pady = 5)
 
 # Entry - Info
-e1 = ttk.Entry(frame1, textvariable= caps)
-e2 = ttk.Entry(frame1, textvariable= caps)
-e3 = ttk.Entry(frame1, textvariable= caps)
-e4 = ttk.Entry(frame1)
-e5 = ttk.Entry(frame1, textvariable= caps)
-e6 = ttk.Entry(frame1, textvariable= caps)
-e7 = ttk.Entry(frame1)
-e8 = ttk.Entry(frame1)
-e9 = ttk.Entry(frame1)
-e10 = ttk.Entry(frame1, textvariable= caps)
+e1 = ttk.Entry(frame1, textvariable= caps, bootstyle= "dark")
+e2 = ttk.Entry(frame1, textvariable= caps, bootstyle= "dark")
+e3 = ttk.Entry(frame1, textvariable= caps, bootstyle= "dark")
+e4 = ttk.Entry(frame1, bootstyle= "dark")
+e5 = ttk.Entry(frame1, textvariable= caps, bootstyle= "dark")
+e6 = ttk.Entry(frame1, textvariable= caps, bootstyle= "dark")
+e7 = ttk.Entry(frame1, bootstyle= "dark")
+e8 = ttk.Entry(frame1, bootstyle= "dark")
+e9 = ttk.Entry(frame1, bootstyle= "dark")
+e10 = ttk.Entry(frame1, textvariable= caps, bootstyle= "dark")
 bb = ttk.Button(frame1, text= "Buscar", command= nventana)
 
 e1.grid(row= 0, column= 1, padx = 10, pady = 5)
@@ -247,28 +318,28 @@ e10.grid(row= 9, column= 1, padx = 10, pady = 5)
 bb.grid(row= 10, column= 1, padx = 10, pady = 5)
 
 # Entry - Datos
-e11 = ttk.Entry(frame2)
-e12 = AutocompleteEntry (frame2, completevalues=rf)
+e11 = ttk.Entry(frame2, bootstyle= "dark")
+e12 = AutocompleteCombobox (frame2, width= 35, completevalues=repuestos, bootstyle= "dark")
 e12.configure(state='normal')
 e11.grid(row= 1, column= 1, padx = 10, pady = 5)
 e12.grid(row= 1, column= 2, padx = 10, pady = 5)
 
-ep = ttk.Entry(frame2)
+ep = ttk.Entry(frame2, bootstyle= "dark")
 ep.grid(row= 1, column= 3, padx = 10, pady = 5)
 le = tk.Label(frame2, text="Estado:")
 le.grid(row= 0, column= 4, padx = 10, pady = 5)
-ee = ttk.Combobox(frame2, values= ["A: Reponer", "B: Reparar"])
+ee = ttk.Combobox(frame2, values= ["A: Reponer", "B: Reparar"], bootstyle= "dark")
 ee.configure(state='readonly')
 ee.grid(row= 1, column= 4, padx = 10, pady = 5)
 lid = tk.Label(frame2, text= "ID:")
 lid.grid(row= 6, column= 0)
-eid = ttk.Entry(frame2)
+eid = ttk.Entry(frame2, bootstyle= "dark")
 eid.insert(0, str(pid))
 eid.grid(row= 6, column= 1, pady= 5)
 
 # Treeview
 headers = ("CANTIDAD", "REPUESTOS", "UNITARIO", "A/B", "TOTAL")
-tree = ttk.Treeview(frame2, columns=headers, show="headings")
+tree = ttk.Treeview(frame2, columns=headers, show="headings", bootstyle= "dark")
 tree.heading("CANTIDAD", text="CANTIDAD")
 tree.heading("REPUESTOS", text="REPUESTOS")
 tree.heading("UNITARIO", text="UNITARIO")
@@ -279,10 +350,12 @@ tree.tag_configure("even", background= "#FFFFFF")
 tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
 addb = ttk.Button(frame2, text = "Agregar", command = add_item)
 addb.grid(row= 2, column= 6, padx = 10, pady = 10)
-delb = ttk.Button(frame2, text= "Eliminar", command= del_item)
-delb.grid(row= 3, column= 6, padx= 10, pady= 10)
-genb = ttk.Button(frame2, text= "Generar", command= gen_pres)
-genb.grid(row= 4, column= 6, padx = 10, pady = 10)
+addb = ttk.Button(frame2, text = "Modificar", command = upd_ventana, bootstyle= "warning")
+addb.grid(row= 3, column= 6, padx = 10, pady = 10)
+delb = ttk.Button(frame2, text= "Eliminar", command= del_item, bootstyle= "danger")
+delb.grid(row= 4, column= 6, padx= 10, pady= 10)
+genb = ttk.Button(frame2, text= "Generar", command= gen_pres, bootstyle= "success")
+genb.grid(row= 5, column= 6, padx = 10, pady = 10)
 
 # Frame-Packs
 frame1.pack(side = "left", padx = 20, pady = 20)
