@@ -1,6 +1,9 @@
 import sqlite3
 import tkinter as tk
-from tkinter import ttk, Toplevel, messagebox
+import ttkbootstrap as ttk
+from tkinter import Toplevel, messagebox
+
+style = ttk.Style ("flatly")
 
 conn = sqlite3.connect('./files/presdb.db')
 cur = conn.cursor()

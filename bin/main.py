@@ -7,6 +7,7 @@ from tkinter import messagebox, filedialog, Toplevel
 from ttkwidgets.autocomplete import *
 from pathlib import Path
 from ddbb import nventana
+from jsusp import load_csv, save_csv
 from ttkbootstrap.constants import *
 
 # DDBB Conx
