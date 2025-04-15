@@ -83,6 +83,7 @@ def new_pres() :
     pres_list.clear()
 
 def add_item() :
+    global cantidad, repuestos, unitario, ab, precio
     try: 
         cantidad = int(e11.get())
         repuestos = e12.get()
@@ -172,26 +173,40 @@ def upd_ventana() :
                 if not new1 or not new2 or not new3 or not new4 :
                     messagebox.showerror("Error", "Todos los campos son obligartorios")
                     return
-                try:
-                    int(new1)
-                    str(new2)
-                    float(new3)
-                except ValueError as e:
-                    messagebox.showerror("Error", f"{e}")
-                    return
+                original_values = tree.item(focus_item, 'values')
+                ocantidad = int(original_values[0])
+                orepuesto = original_values[1]
+                ounitario = float(original_values[2])
+                oestado = original_values[3]
+                ototal = float(original_values[4])
                 
+                # Reemplazar el ítem en la lista
+                for idx, item in enumerate(pres_list):
+                    if (
+                        item[0] == ocantidad and
+                        item[1] == orepuesto and
+                        item[2] == ounitario and
+                        item[3] == oestado and
+                        item[4] == ototal
+                    ):
+                        pres_list[idx] = [new1, new2, new3, new4, new5]
+                        break
+
+                # Actualizamos el treeview
                 tree.item(focus_item, values=(new1, new2, new3, new4, new5))
+                messagebox.showinfo("Aviso", "Ítem modificado correctamente!")
                 ventana.destroy()
 
-        nb = ttk.Button(nframe, text= "Modificar", command= upd_item)
-        nb.grid(row= 4, column= 0, columnspan= 2, padx= 10, pady= 10)
-
-        nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
-    
-    except ValueError:
-        pass
+    except ValueError as e:
+        messagebox.showerror("Error", f"Error de conversión: {e}")
     except Exception as e:
-        messagebox.showerror("Error", f"Ocurrió un error al modificar el ítem: {e}")
+        messagebox.showerror("Error", f"Ocurrió un error: {e}")
+
+    nb = ttk.Button(nframe, text= "Modificar", command= upd_item)
+    nb.grid(row= 4, column= 0, columnspan= 2, padx= 10, pady= 10)
+
+    nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
+    
 
 
 def gen_pres() :
@@ -333,7 +348,7 @@ ee.configure(state='readonly')
 ee.grid(row= 1, column= 4, padx = 10, pady = 5)
 lid = tk.Label(frame2, text= "ID:")
 lid.grid(row= 6, column= 0)
-eid = ttk.Entry(frame2, bootstyle= "dark")
+eid = ttk.Entry(frame2, state= "normal", bootstyle= "dark")
 eid.insert(0, str(pid))
 eid.grid(row= 6, column= 1, pady= 5)
 
