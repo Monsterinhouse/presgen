@@ -1,13 +1,12 @@
 import tkinter as tk
 import ttkbootstrap as ttk
-import datetime, os, sqlite3
+import datetime, os, sqlite3, csv
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from tkinter import messagebox, filedialog, Toplevel
 from ttkwidgets.autocomplete import *
 from pathlib import Path
 from ddbb import nventana
-from jsusp import load_csv, save_csv
 from ttkbootstrap.constants import *
 
 # DDBB Conx
@@ -140,7 +139,7 @@ def upd_ventana() :
         ventana = Toplevel()
         ventana.title("Modificar Item")
         ventana.config(width= 300, height= 200, bg= "grey")
-        nframe = tk.Frame(ventana, width= 100, height= 100, borderwidth = 1, relief = "solid")
+        nframe = ttk.Frame(ventana, width= 100, height= 100, borderwidth = 1, relief = "solid")
 
         nl1 = ttk.Label(nframe, text= "Cantidad:")
         nl2 = ttk.Label(nframe, text= "Repuesto:")
@@ -207,8 +206,41 @@ def upd_ventana() :
     nb.grid(row= 4, column= 0, columnspan= 2, padx= 10, pady= 10)
 
     nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
-    
 
+def load_csv():
+    try:
+        of = filedialog.askopenfilename()
+        with open(of) as myfile:
+            csvread = csv.reader(myfile, delimiter=',')
+            
+            for row in csvread:
+                try:
+                    cant = int(row[0])
+                    rep = row[1]
+                    punit = float(row[2])
+                    cat = row[3]
+                    total = float(row[4])
+                    tree.insert("", 'end', values=row)
+                    pres_list.append([cant, rep, punit, cat, total])
+                except ValueError:
+                     messagebox.showwarning("Dato inválido", f"Fila con datos no válidos: {row}")
+
+    except ValueError as e:
+        messagebox.showerror ("Aviso!", f"No se cargo un archivo\n Error:{e}")
+
+def save_csv():
+    try: 
+        sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_", defaultextension=".csv")
+        with open(sf, "w", newline='') as myfile:
+            csvwriter = csv.writer(myfile, delimiter=',')
+            
+            for row_id in tree.get_children():
+                row = tree.item(row_id)['values']
+                print('save row:', row)
+                csvwriter.writerow(row)
+
+    except ValueError:
+        messagebox.showerror ("Aviso!", "No se guardo el archivo")
 
 def gen_pres() :
     global pid, eid, doc_path
@@ -366,12 +398,19 @@ tree.tag_configure("even", background= "#FFFFFF")
 tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
 addb = ttk.Button(frame2, text = "Agregar", command = add_item)
 addb.grid(row= 2, column= 6, padx = 10, pady = 10)
-addb = ttk.Button(frame2, text = "Modificar", command = upd_ventana, bootstyle= "warning")
-addb.grid(row= 3, column= 6, padx = 10, pady = 10)
+modb = ttk.Button(frame2, text = "Modificar", command = upd_ventana, bootstyle= "warning")
+modb.grid(row= 3, column= 6, padx = 10, pady = 10)
 delb = ttk.Button(frame2, text= "Eliminar", command= del_item, bootstyle= "danger")
 delb.grid(row= 4, column= 6, padx= 10, pady= 10)
 genb = ttk.Button(frame2, text= "Generar", command= gen_pres, bootstyle= "success")
 genb.grid(row= 5, column= 6, padx = 10, pady = 10)
+#####
+saveb = ttk.Button(frame2, text= "Guardar Presupuesto", command= save_csv, bootstyle= "secondary")
+saveb.grid(row= 6, column= 3, padx = 10, pady = 10)
+openb = ttk.Button(frame2, text= "Abrir Presupuesto", command= load_csv, bootstyle= "secondary")
+openb.grid(row= 6, column= 4, padx = 10, pady = 10)
+modib = ttk.Button(frame2, text= "Agregar Repuestos", command=lambda:os.system('python ./bin/mod.py'), bootstyle= "secondary")
+modib.grid(row= 6, column= 2, padx = 10, pady = 10)
 
 # Frame-Packs
 frame1.pack(side = "left", padx = 20, pady = 20)

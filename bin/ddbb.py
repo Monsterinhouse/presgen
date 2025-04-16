@@ -3,8 +3,6 @@ import tkinter as tk
 import ttkbootstrap as ttk
 from tkinter import Toplevel, messagebox
 
-style = ttk.Style ("flatly")
-
 conn = sqlite3.connect('./files/presdb.db')
 cur = conn.cursor()
 
@@ -36,14 +34,14 @@ def nventana() :
     # Buttons - Labels
     l1 = ttk.Label(framea, text= "Nombre/Apellido: ")
     l2 = ttk.Label(framea, text= "ID: ")
-    e1 = ttk.Entry(framea, textvariable= caps)
-    e2 = ttk.Entry(framea, textvariable= caps)
+    e1 = ttk.Entry(framea, textvariable= caps, bootstyle= "dark")
+    e2 = ttk.Entry(framea, textvariable= caps, bootstyle= "dark")
     b1  = ttk.Button(framea, text= "Buscar Cliente/Presupuesto", command= buscar)
     b1.grid(column= 4, row= 1)
 
     # Tree
     headers = ("PID", "NOMBRE", "APELLIDO", "FECHA", "ARCHIVO")
-    tree =  ttk.Treeview(framea, columns= headers, show= "headings")
+    tree =  ttk.Treeview(framea, columns= headers, show= "headings", bootstyle= "dark")
     tree.heading("PID", text= "PID")
     tree.heading("NOMBRE", text= "NOMBRE")
     tree.heading("APELLIDO", text= "APELLIDO")
