@@ -5,10 +5,16 @@ import os
 
 ARCHIVO = "./files/repuestos.csv"
 
-# Cargar CSV
+# Lista de nombres prohibidos que no son repuestos
+PROHIBIDOS = {"MANO DE OBRA", "SERVICIO", "MO", "MANO OBRA", "SERVICIOS"}
+
+# Crear archivo si no existe
 if not os.path.exists(ARCHIVO):
-    df = pd.DataFrame(columns=["repuesto", "precio"])
+    df = pd.DataFrame(columns=["repuestos"])
     df.to_csv(ARCHIVO, index=False)
+
+def es_valido(nombre):
+    return nombre.upper() not in PROHIBIDOS and nombre.strip() != ""
 
 def cargar_datos():
     return pd.read_csv(ARCHIVO)
@@ -16,77 +22,71 @@ def cargar_datos():
 def guardar_datos(df):
     df.to_csv(ARCHIVO, index=False)
 
-
 def mostrar():
     df = cargar_datos()
     text_area.delete("1.0", tk.END)
-    text_area.insert(tk.END, df.to_string(index=False))
+    if df.empty:
+        text_area.insert(tk.END, "No hay repuestos cargados.")
+    else:
+        text_area.insert(tk.END, df.to_string(index=False))
 
 def crear():
     df = cargar_datos()
     nombre = e_nombre.get().strip()
-    if nombre in df['repuesto'].values:
+    if not es_valido(nombre):
+        messagebox.showerror("Error", "Nombre de repuesto inválido o reservado.")
+        return
+    if nombre in df['repuestos'].values:
         messagebox.showerror("Error", "El repuesto ya existe.")
         return
-    try:
-        precio_str = e_precio.get().strip()
-        precio_str = precio_str.replace(",", ".")
-        precio_str = ''.join(c for c in precio_str if c.isdigit() or c == '.')
-        precio = float(precio_str)
-        nuevo = pd.DataFrame([{"repuesto": nombre, "precio": precio}])
-        df = pd.concat([df, nuevo], ignore_index=True)
-        guardar_datos(df)
-        limpiar()
-        messagebox.showinfo("Éxito", "Repuesto agregado.")
-    except Exception as e:
-        messagebox.showerror("Error", f"Precio inválido. {e}")
+    nuevo = pd.DataFrame([{"repuestos": nombre}])
+    df = pd.concat([df, nuevo], ignore_index=True)
+    guardar_datos(df)
+    limpiar()
+    messagebox.showinfo("Éxito", "Repuesto agregado.")
+    mostrar()
 
 def actualizar():
     df = cargar_datos()
     nombre = e_nombre.get().strip()
-    if nombre not in df['repuesto'].values:
+    if not es_valido(nombre):
+        messagebox.showerror("Error", "Nombre de repuestos inválido o reservado.")
+        return
+    if nombre not in df['repuestos'].values:
         messagebox.showerror("Error", "El repuesto no existe.")
         return
-    try:
-        precio = float(e_precio.get())
-        df.loc[df['repuesto'].str.strip() == nombre, 'precio'] = float(precio)
-        guardar_datos(df)
-        limpiar()
-        mostrar()
-        messagebox.showinfo("Éxito", "Repuesto actualizado.")
-    except:
-        messagebox.showerror("Error", "Precio inválido.")
+    # Simulación: eliminar y volver a agregar (ya que no hay más campos)
+    df = df[df['repuestos'] != nombre]
+    df = pd.concat([df, pd.DataFrame([{"repuestos": nombre}])], ignore_index=True)
+    guardar_datos(df)
+    limpiar()
+    messagebox.showinfo("Éxito", "Repuesto actualizado.")
+    mostrar()
 
 def eliminar():
     df = cargar_datos()
     nombre = e_nombre.get().strip()
-    if nombre not in df['repuesto'].values:
+    if nombre not in df['repuestos'].values:
         messagebox.showerror("Error", "El repuesto no existe.")
         return
-    df = df[df['repuesto'] != nombre]
+    df = df[df['repuestos'] != nombre]
     guardar_datos(df)
     limpiar()
-    mostrar()
     messagebox.showinfo("Éxito", "Repuesto eliminado.")
+    mostrar()
 
 def limpiar():
     e_nombre.delete(0, tk.END)
-    e_precio.delete(0, tk.END)
 
-def app() :
-    global root, e_nombre, e_precio, text_area
-    # GUI
+def app():
+    global root, e_nombre, text_area
     root = tk.Tk()
-    root.title("CRUD - Repuestos CSV")
-    root.geometry("500x500")
+    root.title("CRUD - repuestos CSV")
+    root.geometry("500x450")
 
-    ttk.Label(root, text="Repuesto").pack()
+    ttk.Label(root, text="Nombre del repuestos").pack()
     e_nombre = tk.Entry(root)
-    e_nombre.pack()
-
-    ttk.Label(root, text="Precio").pack()
-    e_precio = tk.Entry(root)
-    e_precio.pack()
+    e_nombre.pack(pady=5)
 
     ttk.Button(root, text="Agregar", command=crear).pack(pady=5)
     ttk.Button(root, text="Actualizar", command=actualizar).pack(pady=5)
@@ -102,7 +102,7 @@ def app() :
 
 def verificar_contraseña():
     password = entry_pass.get()
-    if password == "LDNJRTZHHJYX27011833":  # <-- Cambiá esto si querés otra contraseña
+    if password == "LDNJRTZHHJYX27011833":
         login.destroy()
         app()
     else:
@@ -110,6 +110,7 @@ def verificar_contraseña():
         login.destroy()
         exit()
 
+# Login inicial
 login = tk.Tk()
 login.title("Ingreso al sistema")
 login.geometry("300x150")

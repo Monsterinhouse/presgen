@@ -7,6 +7,7 @@ from tkinter import messagebox, filedialog, Toplevel
 from ttkwidgets.autocomplete import *
 from pathlib import Path
 from ddbb import nventana
+from filetree import abrir
 from ttkbootstrap.constants import *
 
 # DDBB Conx
@@ -19,11 +20,9 @@ def query() :
     d_tuple = (pid, e1.get().upper(), e2.get().upper(), doc_path, t.strftime("%d/%m/%Y"))
     cur.execute(values, d_tuple)
     conn.commit()
-    cur.close()
 
 # SystemConfig
 app = tk.Tk()
-app.geometry ("1500x600")
 app.title ("PresGen V1.0")
 app.resizable (False, False)
 style = ttk.Style ("flatly")
@@ -35,7 +34,7 @@ t = datetime.datetime.now()
 pid = 0
 repuestos = []
 pres_list = []
-caps = str()
+caps = tk.StringVar()
 
 def caps(event) :
     caps.set(caps.get().upper())
@@ -207,30 +206,49 @@ def upd_ventana() :
 
     nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
 
-def load_csv():
-    try:
-        of = filedialog.askopenfilename()
-        with open(of) as myfile:
-            csvread = csv.reader(myfile, delimiter=',')
-            
-            for row in csvread:
-                try:
-                    cant = int(row[0])
-                    rep = row[1]
-                    punit = float(row[2])
-                    cat = row[3]
-                    total = float(row[4])
-                    tree.insert("", 'end', values=row)
-                    pres_list.append([cant, rep, punit, cat, total])
-                except ValueError:
-                     messagebox.showwarning("Dato inválido", f"Fila con datos no válidos: {row}")
+from filetree import abrir
+import csv
 
-    except ValueError as e:
-        messagebox.showerror ("Aviso!", f"No se cargo un archivo\n Error:{e}")
+import csv
+
+import csv
+
+import csv
+
+import csv
+
+import csv
+
+def load_csv():
+    global callback_csv
+    def callback_csv(ruta_archivo):
+        if ruta_archivo.endswith('.csv'):
+            try:
+                print(ruta_archivo)
+                # Limpiar treeview si es necesario
+                for i in tree.get_children():
+                    tree.delete(i)
+
+                with open(ruta_archivo, newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    for row in reader:
+                        # Insertar los valores como filas, sin modificar los encabezados
+                        tree.insert('', 'end', values=row)
+            except Exception as e:
+                print(f"Error al leer archivo: {e}")
+        else:
+            print("El archivo seleccionado no es un CSV")
+
+    # Ejecutar ventana de selección y pasar el callback
+    abrir(callback_csv)
+
+
+
+
 
 def save_csv():
     try: 
-        sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_", defaultextension=".csv")
+        sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_{e2.get().upper()}", defaultextension=".csv", filetypes=[("CommaSeparatedFile", "*.csv")])
         with open(sf, "w", newline='') as myfile:
             csvwriter = csv.writer(myfile, delimiter=',')
             
@@ -238,8 +256,9 @@ def save_csv():
                 row = tree.item(row_id)['values']
                 print('save row:', row)
                 csvwriter.writerow(row)
+                tree.delete(*tree.get_children())
 
-    except ValueError:
+    except Exception:
         messagebox.showerror ("Aviso!", "No se guardo el archivo")
 
 def gen_pres() :
@@ -415,5 +434,8 @@ modib.grid(row= 6, column= 2, padx = 10, pady = 10)
 # Frame-Packs
 frame1.pack(side = "left", padx = 20, pady = 20)
 frame2.pack(side = "right", padx = 20, pady = 20)
+
+if app.destroy == True :
+    cur.close()
 
 app.mainloop()
