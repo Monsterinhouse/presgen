@@ -30,6 +30,7 @@ app.config (bg="grey")
 
 # Varibles / Lists / Misc
 idfile = Path("./files/id.txt")
+savefile = './files/savepath.txt'
 t = datetime.datetime.now()
 pid = 0
 repuestos = []
@@ -206,21 +207,7 @@ def upd_ventana() :
 
     nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
 
-from filetree import abrir
-import csv
-
-import csv
-
-import csv
-
-import csv
-
-import csv
-
-import csv
-
 def load_csv():
-    global callback_csv
     def callback_csv(ruta_archivo):
         if ruta_archivo.endswith('.csv'):
             try:
@@ -228,28 +215,62 @@ def load_csv():
                 # Limpiar treeview si es necesario
                 for i in tree.get_children():
                     tree.delete(i)
+                    pres_list.clear()
+                
+                with open(ruta_archivo, newline='', encoding='utf-8') as myfile:
+                    csvread = csv.reader(myfile, delimiter=',')
+                    for row in csvread:
+                        try:
+                            cant = int(row[0])
+                            rep = row[1]
+                            punit = float(row[2])
+                            cat = row[3]
+                            total = float(row[4])
+                            tree.insert("", 'end', values=row)
+                            pres_list.append([cant, rep, punit, cat, total])
 
-                with open(ruta_archivo, newline='', encoding='utf-8') as f:
-                    reader = csv.reader(f)
-                    for row in reader:
-                        # Insertar los valores como filas, sin modificar los encabezados
-                        tree.insert('', 'end', values=row)
+                        except ValueError:
+                            messagebox.showwarning("Dato inválido", f"Fila con datos no válidos: {row}")
             except Exception as e:
-                print(f"Error al leer archivo: {e}")
+                messagebox.showerror("Error al leer archivo", f"{e}")
         else:
-            print("El archivo seleccionado no es un CSV")
+            messagebox.showerror("El archivo seleccionado no es un CSV")
 
     # Ejecutar ventana de selección y pasar el callback
     abrir(callback_csv)
 
-
-
-
-
 def save_csv():
+    def guardar_ruta_savefile(path):
+        with open(savefile, 'w', encoding='utf-8') as f:
+            f.write(path)
+
+    def cargar_ruta_savefile():
+        if os.path.exists(savefile):
+            with open(savefile, 'r', encoding='utf-8') as f:
+                return f.read().strip()
+        return None
+
+    def seleccionar_o_cargar_ruta():
+            ruta_guardada = cargar_ruta_savefile()
+            if ruta_guardada and os.path.isdir(ruta_guardada):
+                return ruta_guardada
+            else:
+                path = filedialog.askdirectory(title="Seleccionar carpeta principal")
+                if path:
+                    guardar_ruta_savefile(path)
+                    return path
+                else:
+                    return
+
     try: 
-        sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_{e2.get().upper()}", defaultextension=".csv", filetypes=[("CommaSeparatedFile", "*.csv")])
-        with open(sf, "w", newline='') as myfile:
+        # sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_{e2.get().upper()}", defaultextension=".csv", filetypes=[("CommaSeparatedFile", "*.csv")])
+        sf_r = seleccionar_o_cargar_ruta()
+        sf_c = os.path.join(sf_r , f"Suspenso-{e2.get().upper()}" + ".csv")
+        sf = open(sf_c, "w")
+        if not sf:
+            return
+        
+        with open(sf_c, "w", newline='') as myfile:
             csvwriter = csv.writer(myfile, delimiter=',')
             
             for row_id in tree.get_children():
@@ -257,9 +278,10 @@ def save_csv():
                 print('save row:', row)
                 csvwriter.writerow(row)
                 tree.delete(*tree.get_children())
+                messagebox.showinfo ("Aviso!", "Archivo Guardado correctamente!")
 
-    except Exception:
-        messagebox.showerror ("Aviso!", "No se guardo el archivo")
+    except Exception as e:
+        messagebox.showerror ("Aviso!", f"No se guardo el archivo: {e}")
 
 def gen_pres() :
     global pid, eid, doc_path

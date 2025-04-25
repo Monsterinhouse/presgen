@@ -3,7 +3,7 @@ import ttkbootstrap as ttk
 import os
 from tkinter import filedialog
 
-config_file = "./files/abspath.txt"
+config_file = "./files/loadpath.txt"
 filepath = 'Seleccione una carpeta...'
 item_counter = 0  # Contador global
 

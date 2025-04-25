@@ -1,0 +1,19 @@
+
+    ____                 ______         
+   / __ \________  _____/ ____/__  ____ 
+  / /_/ / ___/ _ \/ ___/ / __/ _ \/ __ \
+ / ____/ /  /  __(__  ) /_/ /  __/ / / /
+/_/   /_/   \___/____/\____/\___/_/ /_/ 
+                                        
+
+                                                                                                               
+PresGen V1.13
+
+### LEER ANTES DE INSTALAR ###
+
+- Ante cualquier problema, contactarse con Javi y/o conmigo (Lucas) a la siguiente direccion: lucas.cruz2003@hotmail.com
+
+- Documentar cualquier error, de cualquier forma, y mandarlo a la direccion y/o contacto previamente establecido.
+-- (Por lo general, los errores aparecen en la terminal que aparece junto con el programa. En caso de que algo no funcione, revisar la terminal y copiar *TODO* lo que diga en la supuesta notificacion de error)
+
+@monsterinhouse

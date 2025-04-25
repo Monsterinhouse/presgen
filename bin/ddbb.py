@@ -12,7 +12,8 @@ cur.execute(''' CREATE TABLE IF NOT EXISTS clientes
 def caps(event) :
     caps.set(caps.get().upper())
 
-def buscar() : 
+def buscar() :
+    tree.delete(*tree.get_children())
     try:
         nya = str(e1.get())
         pid = e2.get()
@@ -41,7 +42,7 @@ def nventana() :
 
     # Tree
     headers = ("PID", "NOMBRE", "APELLIDO", "FECHA", "ARCHIVO")
-    tree =  ttk.Treeview(framea, columns= headers, show= "headings", bootstyle= "dark")
+    tree =  ttk.Treeview(framea, columns= headers, show= "headings")
     tree.heading("PID", text= "PID")
     tree.heading("NOMBRE", text= "NOMBRE")
     tree.heading("APELLIDO", text= "APELLIDO")
