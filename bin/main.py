@@ -17,7 +17,7 @@ cur = conn.cursor()
 def query() :
     values = ('''INSERT INTO clientes (pres_id, nombre, apellido, path, fecha)
                 VALUES (?, ?, ?, ?, ?)''')
-    d_tuple = (pid, e1.get().upper(), e2.get().upper(), doc_path, t.strftime("%d/%m/%Y"))
+    d_tuple = (pid, e1.get().upper(), e2.get().upper(), doc_path.replace(".docx",".pdf"), t.strftime("%d/%m/%Y"))
     cur.execute(values, d_tuple)
     conn.commit()
 
@@ -211,32 +211,55 @@ def load_csv():
     def callback_csv(ruta_archivo):
         if ruta_archivo.endswith('.csv'):
             try:
-                print(ruta_archivo)
-                # Limpiar treeview si es necesario
                 for i in tree.get_children():
                     tree.delete(i)
-                    pres_list.clear()
-                
+                pres_list.clear()
+
                 with open(ruta_archivo, newline='', encoding='utf-8') as myfile:
                     csvread = csv.reader(myfile, delimiter=',')
-                    for row in csvread:
-                        try:
-                            cant = int(row[0])
-                            rep = row[1]
-                            punit = float(row[2])
-                            cat = row[3]
-                            total = float(row[4])
-                            tree.insert("", 'end', values=row)
-                            pres_list.append([cant, rep, punit, cat, total])
+                    entry_loaded = False
+                    rows = list(csvread)
 
-                        except ValueError:
-                            messagebox.showwarning("Dato inválido", f"Fila con datos no válidos: {row}")
+                    for row in rows:
+                        if not row:
+                            continue  # Saltar filas vacías
+
+                        if row[0].strip().upper() == "ENTRYDATA":
+                            # Lista de entries en el mismo orden que los datos
+                            entry_widgets = [e1, e3, e4, e5, e6, e7, e8, e9, e10]
+
+                            for i, entry in enumerate(entry_widgets, start=1):
+                                entry.delete(0, tk.END)
+                                if i < len(row) and row[i].strip():
+                                    entry.insert(0, row[i])
+                            entry_loaded = True
+                        else:
+                            if len(row) < 1 or row[0].strip().upper() == "ENTRYDATA":
+                                continue  # saltar entrada incompleta o mal formateada
+
+                            # Rellenar con valores por defecto si faltan columnas
+                            while len(row) < 5:
+                                row.append('')
+
+                            try:
+                                cant = int(row[0]) if row[0] else 0
+                                rep = row[1] if row[1] else ''
+                                punit = float(row[2]) if row[2] else 0.0
+                                cat = row[3] if row[3] else ''
+                                total = float(row[4]) if row[4] else 0.0
+
+                                tree.insert("", 'end', values=[cant, rep, punit, cat, total])
+                                pres_list.append([cant, rep, punit, cat, total])
+                            except ValueError:
+                                print(f"Fila inválida (omitida): {row}")
+
+                if not entry_loaded:
+                    print("No se encontró línea ENTRYDATA")
             except Exception as e:
                 messagebox.showerror("Error al leer archivo", f"{e}")
         else:
             messagebox.showerror("El archivo seleccionado no es un CSV")
 
-    # Ejecutar ventana de selección y pasar el callback
     abrir(callback_csv)
 
 def save_csv():
@@ -272,7 +295,27 @@ def save_csv():
         
         with open(sf_c, "w", newline='') as myfile:
             csvwriter = csv.writer(myfile, delimiter=',')
-            
+
+            csvwriter.writerow([
+                e1.get(), e2.get(), e3.get(), e4.get(), e5.get(),
+                e6.get(), e7.get(), e8.get(), e9.get(), e10.get()
+            ])
+
+            # Guardar datos de Entry al principio
+            entry_row = [
+                "ENTRYDATA",
+                e1.get(),  # nombre
+                e3.get(),  # domicilio
+                e4.get(),  # teléfono
+                e5.get(),  # vehículo
+                e6.get(),  # marca
+                e7.get(),  # modelo
+                e8.get(),  # motor
+                e9.get(),  # chasis
+                e10.get()  # dominio
+            ]
+            csvwriter.writerow(entry_row)
+
             for row_id in tree.get_children():
                 row = tree.item(row_id)['values']
                 print('save row:', row)
@@ -282,6 +325,13 @@ def save_csv():
 
     except Exception as e:
         messagebox.showerror ("Aviso!", f"No se guardo el archivo: {e}")
+
+def abrir_pdf(pdf_path):
+    abs_path = os.path.abspath(pdf_path)
+    if os.path.exists(abs_path):
+        os.startfile(abs_path)  # Esto abre el PDF con Edge o el visor predeterminado
+    else:
+        messagebox.showerror("Error", "El archivo PDF no existe.")
 
 def gen_pres() :
     global pid, eid, doc_path
@@ -331,8 +381,11 @@ def gen_pres() :
     doc_path = os.path.join(file, doc_name)
     doc.save(doc_path)
     convert(doc_path, doc_path.replace(".docx", ".pdf"))
+    dc = doc_path
     os.remove(doc_path)
-    messagebox.showinfo("!!!AVISO!!!", "Presupuesto Generado!")
+    messagebox.showinfo("Aviso!", "Presupuesto Generado!")
+
+    abrir_pdf(dc.replace(".docx", ".pdf"))
     
     pid += 1
 
@@ -430,12 +483,17 @@ eid.grid(row= 6, column= 1, pady= 5)
 headers = ("CANTIDAD", "REPUESTOS", "UNITARIO", "A/B", "TOTAL")
 tree = ttk.Treeview(frame2, columns=headers, show="headings", bootstyle= "dark")
 tree.heading("CANTIDAD", text="CANTIDAD")
+tree.column("CANTIDAD", anchor="center")
 tree.heading("REPUESTOS", text="REPUESTOS")
+tree.column("REPUESTOS", anchor="center")
 tree.heading("UNITARIO", text="UNITARIO")
+tree.column("UNITARIO", anchor="center")
 tree.heading("A/B", text="A/B")
+tree.column("A/B", anchor="center")
 tree.heading("TOTAL", text="TOTAL")
-tree.tag_configure("odd", background= "#F5F5F5")
-tree.tag_configure("even", background= "#FFFFFF")
+tree.column("TOTAL", anchor="center")
+tree.tag_configure("odd", background= "grey", foreground= "white")
+tree.tag_configure("even", background= "white", foreground= "black")
 tree.grid (row = 2, columnspan = 6, rowspan = 4, pady = 10, padx = 10)
 addb = ttk.Button(frame2, text = "Agregar", command = add_item)
 addb.grid(row= 2, column= 6, padx = 10, pady = 10)
