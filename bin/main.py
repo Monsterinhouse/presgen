@@ -122,6 +122,13 @@ def del_item() :
     except Exception as e:
          messagebox.showerror("Error", f"Ocurrió un error al eliminar el ítem: {e}")
 
+def find(name, path):
+    for root, dirs, files in os.walk(path):
+        if name in files:
+            return True
+        else:
+            return False
+
 def upd_ventana() :
     focus_item = tree.focus()
     if not focus_item : 
@@ -226,7 +233,7 @@ def load_csv():
 
                         if row[0].strip().upper() == "ENTRYDATA":
                             # Lista de entries en el mismo orden que los datos
-                            entry_widgets = [e1, e3, e4, e5, e6, e7, e8, e9, e10]
+                            entry_widgets = [e1, e2, e3, e4, e5, e6, e7, e8, e9, e10]
 
                             for i, entry in enumerate(entry_widgets, start=1):
                                 entry.delete(0, tk.END)
@@ -289,6 +296,13 @@ def save_csv():
         # sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_{e2.get().upper()}", defaultextension=".csv", filetypes=[("CommaSeparatedFile", "*.csv")])
         sf_r = seleccionar_o_cargar_ruta()
         sf_c = os.path.join(sf_r , f"Suspenso-{e2.get().upper()}" + ".csv")
+        if (find(f"Suspenso-{e2.get().upper()}.csv", sf_r) == True) :
+            res = messagebox.askyesno("Archivo ya existente", f"Ya existe un archivo con el nombre {sf_c}. Desea agregar el nombre como indice?", icon ="warning")
+            if res:
+                sf_c = sf_c = os.path.join(sf_r , f"Suspenso-{e2.get().upper()}-{e1.get().upper()}" + ".csv")
+            else:
+                messagebox.showwarning ("Aviso!", "No se guardo el archivo. Pruebe cambiar el apellido o agregarle un distintivo temporal.")
+                return
         sf = open(sf_c, "w")
         if not sf:
             return
@@ -305,6 +319,7 @@ def save_csv():
             entry_row = [
                 "ENTRYDATA",
                 e1.get(),  # nombre
+                e2.get(),  # apellido
                 e3.get(),  # domicilio
                 e4.get(),  # teléfono
                 e5.get(),  # vehículo
@@ -321,7 +336,8 @@ def save_csv():
                 print('save row:', row)
                 csvwriter.writerow(row)
                 tree.delete(*tree.get_children())
-                messagebox.showinfo ("Aviso!", "Archivo Guardado correctamente!")
+            
+            messagebox.showinfo ("Aviso!", "Archivo Guardado correctamente!")
 
     except Exception as e:
         messagebox.showerror ("Aviso!", f"No se guardo el archivo: {e}")
