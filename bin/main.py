@@ -23,7 +23,7 @@ def query() :
 
 # SystemConfig
 app = tk.Tk()
-app.title ("PresGen V1.0")
+app.title ("PresGen V1.4")
 app.resizable (False, False)
 style = ttk.Style ("flatly")
 app.config (bg="grey")
@@ -295,14 +295,13 @@ def save_csv():
     try: 
         # sf = filedialog.asksaveasfilename(initialfile=f"Suspenso_{e2.get().upper()}", defaultextension=".csv", filetypes=[("CommaSeparatedFile", "*.csv")])
         sf_r = seleccionar_o_cargar_ruta()
-        sf_c = os.path.join(sf_r , f"Suspenso-{e2.get().upper()}" + ".csv")
-        if (find(f"Suspenso-{e2.get().upper()}.csv", sf_r) == True) :
-            res = messagebox.askyesno("Archivo ya existente", f"Ya existe un archivo con el nombre {sf_c}. Desea agregar el nombre como indice?", icon ="warning")
-            if res:
-                sf_c = sf_c = os.path.join(sf_r , f"Suspenso-{e2.get().upper()}-{e1.get().upper()}" + ".csv")
-            else:
-                messagebox.showwarning ("Aviso!", "No se guardo el archivo. Pruebe cambiar el apellido o agregarle un distintivo temporal.")
-                return
+        sf_c = os.path.join(sf_r , f"Suspenso-{e2.get().upper()}-{e1.get().upper()}" + ".csv")
+        if (find(f"Suspenso-{e2.get().upper()}-{e1.get().upper()}.csv", sf_r) == True) :
+            messagebox.showwarning ("Aviso!", f"Ya existe un archivo con el nombre '{sf_c}'. Quiza deberia ponerle otro nombre o distintivo temporal.")
+            messagebox.showwarning ("Aviso!", "Archivo no guardado!")
+            return
+            
+
         sf = open(sf_c, "w")
         if not sf:
             return
@@ -337,6 +336,7 @@ def save_csv():
                 csvwriter.writerow(row)
                 tree.delete(*tree.get_children())
             
+            new_pres()
             messagebox.showinfo ("Aviso!", "Archivo Guardado correctamente!")
 
     except Exception as e:
