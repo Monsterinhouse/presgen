@@ -100,25 +100,6 @@ def app():
 
     root.mainloop()
 
-def verificar_contraseña():
-    password = entry_pass.get()
-    if password == "LDNJRTZHHJYX27011833":
-        login.destroy()
-        app()
-    else:
-        messagebox.showerror("Acceso denegado", "Contraseña incorrecta.")
-        login.destroy()
-        exit()
+app()
 
-# Login inicial
-login = tk.Tk()
-login.title("Ingreso al sistema")
-login.geometry("300x150")
-login.resizable(False, False)
-
-ttk.Label(login, text="Ingrese la contraseña:").pack(pady=10)
-entry_pass = ttk.Entry(login, show="*")
-entry_pass.pack()
-ttk.Button(login, text="Ingresar", command=verificar_contraseña).pack(pady=10)
-
-login.mainloop()
+app.mainloop()

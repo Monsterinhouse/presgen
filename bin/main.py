@@ -1,6 +1,6 @@
 import tkinter as tk
 import ttkbootstrap as ttk
-import datetime, os, sqlite3, csv
+import datetime, os, sqlite3, csv, locale
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from tkinter import messagebox, filedialog, Toplevel
@@ -23,10 +23,13 @@ def query() :
 
 # SystemConfig
 app = tk.Tk()
-app.title ("PresGen V1.4")
+app.title ("PresGen V1.4.2")
 app.resizable (False, False)
 style = ttk.Style ("flatly")
+img = tk.PhotoImage (file= "./specs/media/PressGenLogo.png")
+app.iconphoto(False, img)
 app.config (bg="grey")
+locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8')
 
 # Varibles / Lists / Misc
 idfile = Path("./files/id.txt")
@@ -222,7 +225,7 @@ def load_csv():
                     tree.delete(i)
                 pres_list.clear()
 
-                with open(ruta_archivo, newline='', encoding='utf-8') as myfile:
+                with open(ruta_archivo, newline='', encoding='cp1252', errors='replace') as myfile:
                     csvread = csv.reader(myfile, delimiter=',')
                     entry_loaded = False
                     rows = list(csvread)
@@ -300,7 +303,6 @@ def save_csv():
             messagebox.showwarning ("Aviso!", f"Ya existe un archivo con el nombre '{sf_c}'. Quiza deberia ponerle otro nombre o distintivo temporal.")
             messagebox.showwarning ("Aviso!", "Archivo no guardado!")
             return
-            
 
         sf = open(sf_c, "w")
         if not sf:
@@ -334,7 +336,8 @@ def save_csv():
                 row = tree.item(row_id)['values']
                 print('save row:', row)
                 csvwriter.writerow(row)
-                tree.delete(*tree.get_children())
+                
+            tree.delete(*tree.get_children())
             
             new_pres()
             messagebox.showinfo ("Aviso!", "Archivo Guardado correctamente!")
@@ -365,8 +368,12 @@ def gen_pres() :
     d = t.strftime("%d")
     m = t.strftime("%m")
     y = t.strftime("%Y")
+    for item in pres_list:
+        item[2] = locale.currency(item[2], grouping=True)
     subtotal = sum(item[4] for item in pres_list)
+    r_sub = locale.currency(subtotal, grouping=True)
     total = subtotal * 1.21 
+    r_total = locale.currency(total, grouping=True)
 
     doc.render({"nya": nya,
                "domicilio": domicilio,
@@ -377,8 +384,8 @@ def gen_pres() :
                "nmotor": nmotor,
                "nchasis": nchasis,
                "dominio": dominio,
-               "subtotal": subtotal,
-               "total": total,
+               "subtotal": r_sub, 
+               "total": r_total,
                "pid": pid,
                "d": d,
                "m": m,

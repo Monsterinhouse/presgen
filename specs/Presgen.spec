@@ -32,7 +32,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['media\\presgenico.png'],
+    icon=['media\\PressGenLogo.png'],
 )
 coll = COLLECT(
     exe,
