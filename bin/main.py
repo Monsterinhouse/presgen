@@ -31,6 +31,7 @@ app.iconphoto(False, img)
 app.config (bg="grey")
 locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8')
 print ("starting...")
+print("abs")
 
 # Varibles / Lists / Misc
 idfile = Path("./files/id.txt")
