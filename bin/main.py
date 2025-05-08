@@ -30,6 +30,7 @@ img = tk.PhotoImage (file= "./specs/media/PressGenLogo.png")
 app.iconphoto(False, img)
 app.config (bg="grey")
 locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8')
+print ("starting...")
 
 # Varibles / Lists / Misc
 idfile = Path("./files/id.txt")
