@@ -64,9 +64,10 @@ else:
 if result.returncode == 0:
     print("\n[200] Actualización completada con éxito.")
     print(result.stdout)
+    
 else:
     os.system("color 0c")
     print("\n[X] Error durante la actualización.")
     print(result.stderr)
 
-os.system("pause")
+os.system("timeout 10")
