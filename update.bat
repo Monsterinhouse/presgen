@@ -23,7 +23,6 @@ color 0a
 
 :: Ejecuta pyinstaller en segundo plano
 pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y
-pause
 
 cls
 echo Compilacion finalizada!.
