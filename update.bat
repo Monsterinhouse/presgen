@@ -17,6 +17,8 @@ echo:
 echo Presione Enter para actualizar el programa
 pause
 
+python ./bin/update.py
+
 :: Ejecuta pyinstaller en segundo plano
 start "" /B cmd /c "pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y" > pyinstaller_log.txt
 
