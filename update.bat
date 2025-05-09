@@ -19,6 +19,8 @@ pause
 
 python ./update.py
 
+rmdir ./temp_repo
+
 :: Ejecuta pyinstaller en segundo plano
 pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y
 pause
@@ -45,21 +47,23 @@ if %errorlevel%==0 (
 
 cls
 echo Compilacion finalizada!.
-echo testing pause
+echo Actualizacion Completa!
 pause
+@REM echo testing pause
+@REM pause
 
-SET DEST=%CD%
+@REM SET DEST=%CD%
 
-:: Copia con sobreescritura forzada desde dist/Presgen/ al directorio actual
-rem robocopy ".\dist\Presgen\" "%DEST%" /E /MOVE /IS /IT /NFL /NDL /NJH /NJS
+@REM :: Copia con sobreescritura forzada desde dist/Presgen/ al directorio actual
+@REM rem robocopy ".\dist\Presgen\" "%DEST%" /E /MOVE /IS /IT /NFL /NDL /NJH /NJS
 
-:: Alternativa con XCOPY (comentada):
-echo %DEST%
-echo F | xcopy .\dist\Presgen\* %DEST%\ /E /Y /Q
-echo Copiado de archivos Completado
+@REM :: Alternativa con XCOPY (comentada):
+@REM echo %DEST%
+@REM echo F | xcopy .\dist\Presgen\* %DEST%\ /E /Y /Q
+@REM echo Copiado de archivos Completado
 
-rmdir /s /q .\dist\
+@REM rmdir /s /q .\dist\
 
-cls
-echo Actualizacion Finalizada
-pause
+@REM cls
+@REM echo Actualizacion Finalizada
+@REM pause
