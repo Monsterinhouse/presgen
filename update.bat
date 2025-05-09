@@ -17,17 +17,17 @@ echo:
 echo Presione Enter para actualizar el programa
 pause
 
-python ./bin/update.py
+python ./update.py
 
 :: Ejecuta pyinstaller en segundo plano
-start "" /B cmd /c "pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y" > pyinstaller_log.txt
+pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y
+pause
 
 :: Simular barra de progreso mientras pyinstaller corre
-set "total=30"
+set "total=50"
 set /a progress=0
 
 :progress_loop
-:: Verifica si pyinstaller sigue ejecutándose
 tasklist | find /i "pyinstaller.exe" >nul
 if %errorlevel%==0 (
     set /a progress+=1
@@ -43,18 +43,23 @@ if %errorlevel%==0 (
     goto :progress_loop
 )
 
-:: Una vez finalizado
 cls
 echo Compilacion finalizada!.
-
-SET "DEST=%CD%"
-
-robocopy C:./dist/Presgen/ "%DEST%" /E /MOVE
-rmdir /s /q .\dist\
-
+echo testing pause
 pause
 
-cls
+SET DEST=%CD%
 
-echo Actualizacion Finalizada!
+:: Copia con sobreescritura forzada desde dist/Presgen/ al directorio actual
+rem robocopy ".\dist\Presgen\" "%DEST%" /E /MOVE /IS /IT /NFL /NDL /NJH /NJS
+
+:: Alternativa con XCOPY (comentada):
+echo %DEST%
+echo F | xcopy .\dist\Presgen\* %DEST%\ /E /Y /Q
+echo Copiado de archivos Completado
+
+rmdir /s /q .\dist\
+
+cls
+echo Actualizacion Finalizada
 pause
