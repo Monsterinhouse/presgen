@@ -24,6 +24,12 @@ color 0a
 :: Ejecuta pyinstaller en segundo plano
 pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y
 
+:: Copiar los archivos generados desde dist\Presgen\ al directorio actual, sobrescribiendo
+robocopy ".\dist\Presgen" "." /E /MOVE /IS /IT /NFL /NDL /NJH /NJS
+
+:: Eliminar carpeta dist
+rmdir /s /q .\dist
+
 cls
 echo Compilacion finalizada!.
 echo Actualizacion Completa!
