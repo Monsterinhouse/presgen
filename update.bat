@@ -22,8 +22,6 @@ python ./update.py
 color 0a
 
 rmdir /s /q build
-rmdir /s /q dist
-rm specs/Presgen.spec
 
 :: Ejecuta pyinstaller en segundo plano
 pyinstaller .\bin\main.py --specpath .\specs\ --name Presgen --icon .\media\PressGenLogo.png --onedir -y
