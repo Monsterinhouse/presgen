@@ -22,6 +22,7 @@ def query() :
     conn.commit()
 
 # SystemConfig
+print("starting...")
 app = tk.Tk()
 app.title ("PresGen V1.4.9-P")
 app.resizable (False, False)
@@ -30,8 +31,6 @@ img = tk.PhotoImage (file= "./specs/media/PressGenLogo.png")
 app.iconphoto(False, img)
 app.config (bg="grey")
 locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8')
-print ("starting...")
-print("abs")
 
 # Varibles / Lists / Misc
 idfile = Path("./files/id.txt")
@@ -370,11 +369,13 @@ def gen_pres() :
     d = t.strftime("%d")
     m = t.strftime("%m")
     y = t.strftime("%Y")
+    subtotal = sum(item[4] for item in pres_list)
     for item in pres_list:
         item[2] = locale.currency(item[2], grouping=True)
-    subtotal = sum(item[4] for item in pres_list)
+        item[4] = locale.currency(item[4], grouping=True)
     r_sub = locale.currency(subtotal, grouping=True)
-    total = subtotal * 1.21 
+    iva = 21
+    total = subtotal * 1.21
     r_total = locale.currency(total, grouping=True)
 
     doc.render({"nya": nya,
@@ -386,6 +387,7 @@ def gen_pres() :
                "nmotor": nmotor,
                "nchasis": nchasis,
                "dominio": dominio,
+               "iva": iva,
                "subtotal": r_sub, 
                "total": r_total,
                "pid": pid,
