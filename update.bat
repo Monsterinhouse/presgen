@@ -17,6 +17,10 @@ echo:
 echo Presione Enter para actualizar el programa
 pause
 
+echo Verificando requerimientos...
+pip install -r requirements.txt --upgrade
+
+echo Actualizando...
 python ./update.py
 
 color 0a
