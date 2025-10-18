@@ -22,9 +22,9 @@ def query() :
     conn.commit()
 
 # SystemConfig
-print("starting...")
+print("[+] Starting...")
 app = tk.Tk()
-app.title ("PresGen V1.4.9-P")
+app.title ("PresGen V1.6-P")
 app.resizable (False, False)
 style = ttk.Style ("flatly")
 img = tk.PhotoImage (file= "./specs/media/PressGenLogo.png")
@@ -37,8 +37,10 @@ idfile = Path("./files/id.txt")
 savefile = './files/savepath.txt'
 t = datetime.datetime.now()
 pid = 0
+items_por_hoja = 35
 repuestos = []
 pres_list = []
+aux_pres_list = [] # Lista auxiliar en caso de hojas extra
 caps = tk.StringVar()
 
 def caps(event) :
@@ -86,8 +88,8 @@ def new_pres() :
 
     pres_list.clear()
 
-def add_item() :
-    global cantidad, repuestos, unitario, ab, precio
+def add_item() : # Añadir Item
+    global cantidad, repuestos, unitario, ab, precio, pres_list, aux_pres_list
     try: 
         cantidad = int(e11.get())
         repuestos = e12.get()
@@ -95,13 +97,20 @@ def add_item() :
         ab = ee.get()
         precio = unitario * cantidad
         pres_items = [cantidad, repuestos, unitario, ab, precio]
+
+        # Inserta en el treeview los elementos
         tree.insert('', 0, values = pres_items)
+
+        # Verifica si la lista principal tiene menos de n elementos (var: items_por_hoja), si es asi agrega el item ahi, sino en la lista auxiliar
+        if len(pres_list) >= items_por_hoja :
+            aux_pres_list.append(pres_items)
+        else:
+            pres_list.append(pres_items)
+
         clear_item()
     
     except ValueError:
         messagebox.showinfo(message = "Tenes que ingresar todos los valores!", title = "AVISO!")
-    
-    pres_list.append(pres_items)
 
 def del_item() :
     focus_item = tree.focus()
@@ -133,7 +142,7 @@ def find(name, path):
         else:
             return False
 
-def upd_ventana() :
+def upd_ventana() : # Actualizar Ventana
     focus_item = tree.focus()
     if not focus_item : 
         messagebox.showwarning("AVISO!", "No hay ningun item seleccionado")
@@ -218,7 +227,7 @@ def upd_ventana() :
 
     nframe.grid(column= 0, row= 0, padx= 20, pady= 20)
 
-def load_csv():
+def load_csv(): # Carga el archivo .csv al explorador
     def callback_csv(ruta_archivo):
         if ruta_archivo.endswith('.csv'):
             try:
@@ -260,12 +269,15 @@ def load_csv():
                                 total = float(row[4]) if row[4] else 0.0
 
                                 tree.insert("", 'end', values=[cant, rep, punit, cat, total])
-                                pres_list.append([cant, rep, punit, cat, total])
+                                if len(pres_list) < items_por_hoja :
+                                    pres_list.append([cant, rep, punit, cat, total])
+                                else:
+                                    aux_pres_list.append([cant, rep, punit, cat, total])
                             except ValueError:
                                 print(f"Fila inválida (omitida): {row}")
 
                 if not entry_loaded:
-                    print("No se encontró línea ENTRYDATA")
+                    print("No se encontró línea de verificacion ENTRYDATA")
             except Exception as e:
                 messagebox.showerror("Error al leer archivo", f"{e}")
         else:
@@ -273,7 +285,7 @@ def load_csv():
 
     abrir(callback_csv)
 
-def save_csv():
+def save_csv(): # Guarda los datos de la tabla en un archivo .csv
     def guardar_ruta_savefile(path):
         with open(savefile, 'w', encoding='utf-8') as f:
             f.write(path)
@@ -353,7 +365,13 @@ def abrir_pdf(pdf_path):
     else:
         messagebox.showerror("Error", "El archivo PDF no existe.")
 
-def gen_pres() :
+def page_check() :
+    if len(pres_list) >= items_por_hoja :
+        return True
+    else :
+        return False
+
+def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
     global pid, eid, doc_path
     doc = DocxTemplate("./files/Pres_Template.docx")
     nya = e1.get().upper() + " " + e2.get().upper()
@@ -410,9 +428,53 @@ def gen_pres() :
     convert(doc_path, doc_path.replace(".docx", ".pdf"))
     dc = doc_path
     os.remove(doc_path)
-    messagebox.showinfo("Aviso!", "Presupuesto Generado!")
+
+# Si hay mas de n elementos (var: items_por_hoja) en pres_list, genera otra hoja con los elementos restantes que estan en aux_pres_list
+    if page_check() :
+        pag2_subtotal = sum(item[4] for item in aux_pres_list) + subtotal
+        pag2_total = (pag2_subtotal * 1.21)
+        r_pag2_subtotal = locale.currency(pag2_subtotal, grouping=True)
+        r_pag2_total = locale.currency(pag2_total, grouping=True)
+        print (f"Len de aux_pres_list: {len(aux_pres_list)}")
+        print (f"Len de pres_list: {len(pres_list)}")
+        #print (aux_pres_list[1])
+        doc2 = DocxTemplate("./files/Pres_Template.docx")
+        for item in aux_pres_list:
+            item[2] = locale.currency(item[2], grouping=True)
+            item[4] = locale.currency(item[4], grouping=True)
+
+        doc2.render({"nya": nya,
+           "domicilio": domicilio,
+           "telefono": telefono,
+           "vehiculo": vehiculo,
+           "marca": marca,
+           "modelo": modelo,
+           "nmotor": nmotor,
+           "nchasis": nchasis,
+           "dominio": dominio,
+           "iva": iva,
+           "subtotal": r_pag2_subtotal, 
+           "total": r_pag2_total,
+           "pid": pid,
+           "d": d,
+           "m": m,
+           "y": y,
+           "pres_list": aux_pres_list
+            })
+        
+        doc2_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}_EXTRA.docx"
+        doc2_path = os.path.join(file, doc2_name)
+        doc2.save(doc2_path)
+        convert(doc2_path, doc2_path.replace(".docx", ".pdf"))
+        os.remove(doc2_path)
+        aux_pres_list.clear()
+
+    messagebox.showinfo("AVISO!", "Presupuesto Generado!")
 
     abrir_pdf(dc.replace(".docx", ".pdf"))
+
+    if page_check() :
+        abrir_pdf(doc2_path.replace(".docx", ".pdf"))
     
     pid += 1
 
