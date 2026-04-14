@@ -1,0 +1,42 @@
+name: Build y Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest  # Compilar en Windows para .exe nativo
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: |
+          pip install pyinstaller
+          pip install -r requirements.txt  # Si tenés dependencias
+
+      - name: Compilar con PyInstaller
+        run: |
+          pyinstaller --onefile --noconsole --name "presgen" main.py
+          # Ajustá "main.py" al nombre de tu archivo principal
+
+      - name: Obtener versión del commit
+        id: version
+        run: echo "sha=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+
+      - name: Crear Release en GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ steps.version.outputs.sha }}
+          name: "Build ${{ steps.version.outputs.sha }}"
+          files: dist/presgen.exe
+          body: ${{ github.event.head_commit.message }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
