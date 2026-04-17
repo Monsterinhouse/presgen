@@ -20,12 +20,16 @@ jobs:
       - name: Instalar dependencias
         run: |
           pip install pyinstaller
-          pip install -r requirements.txt  # Si tenés dependencias
+          pip install -r requirements.txt
+
+      - name: Verificar output de PyInstaller
+        run: |
+          dir dist/
+          dir dist/presgen
 
       - name: Compilar con PyInstaller
         run: |
           pyinstaller --onefile --noconsole --name "presgen" main.py
-          # Ajustá "main.py" al nombre de tu archivo principal
 
       - name: Obtener versión del commit
         id: version
