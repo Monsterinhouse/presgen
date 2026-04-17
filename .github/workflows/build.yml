@@ -1,13 +1,10 @@
 name: Build y Release
-
 on:
   push:
     branches: [main]
-
 jobs:
   build:
-    runs-on: windows-latest # Compilar en Windows para .exe nativo
-
+    runs-on: windows-latest
     steps:
       - name: Checkout del código
         uses: actions/checkout@v4
@@ -22,14 +19,12 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
 
-      - name: Verificar output de PyInstaller
-        run: |
-          dir dist/
-          dir dist/presgen
-
       - name: Compilar con PyInstaller
         run: |
           pyinstaller --onefile --noconsole --name "presgen" main.py
+
+      - name: Verificar ejecutable # ← ahora DESPUÉS de compilar
+        run: dir dist\
 
       - name: Obtener versión del commit
         id: version
