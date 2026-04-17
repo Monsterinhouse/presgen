@@ -81,7 +81,7 @@ import requests  # pip install requests
 
 GITHUB_USER  = "Monsterinhouse"
 GITHUB_REPO  = "presgen"
-EXE_NAME     = "presgen.exe"
+EXE_NAME     = "Presgen.exe"
 VERSION_FILE = "last_version.txt"  # Guarda el SHA del último build
 
 API_URL      = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/releases/latest"

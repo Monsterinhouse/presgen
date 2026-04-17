@@ -40,7 +40,7 @@ jobs:
         with:
           tag_name: build-${{ steps.version.outputs.sha }}
           name: "Build ${{ steps.version.outputs.sha }}"
-          files: dist/presgen.exe
+          files: dist/Presgen.exe
           body: ${{ github.event.head_commit.message }}
           draft: false
           prerelease: false
