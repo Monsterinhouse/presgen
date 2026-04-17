@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest  # Compilar en Windows para .exe nativo
+    runs-on: windows-latest # Compilar en Windows para .exe nativo
 
     steps:
       - name: Checkout del código
@@ -38,5 +38,7 @@ jobs:
           name: "Build ${{ steps.version.outputs.sha }}"
           files: dist/presgen.exe
           body: ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
