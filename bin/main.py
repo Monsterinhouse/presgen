@@ -24,7 +24,7 @@ def query() :
 # SystemConfig
 print("[+] Starting...")
 app = tk.Tk()
-app.title ("PresGen V1.6-P")
+app.title ("PresGen V1.9-P (no console)")
 app.resizable (False, False)
 style = ttk.Style ("flatly")
 img = tk.PhotoImage (file= "./specs/media/PressGenLogo.png")
