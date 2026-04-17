@@ -21,7 +21,7 @@ jobs:
 
       - name: Compilar con PyInstaller
         run: |
-          pyinstaller --onefile --noconsole --name "presgen" main.py
+          pyinstaller --onefile --noconsole --name "presgen" bin/main.py
 
       - name: Verificar ejecutable # ← ahora DESPUÉS de compilar
         run: dir dist\
