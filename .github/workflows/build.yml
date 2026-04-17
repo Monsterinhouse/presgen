@@ -36,7 +36,10 @@ jobs:
           tag_name: build-${{ steps.version.outputs.sha }}
           name: "Build ${{ steps.version.outputs.sha }}"
           files: dist/Presgen.exe
-          body: ${{ github.event.head_commit.message }}
+          body: |
+            Version Compilada Automaticamente
+            Commit: ${{ github.event.head_commit.message }}
+            Fecha: ${{ github.run_id }}
           draft: false
           prerelease: false
         env:
