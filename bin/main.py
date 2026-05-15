@@ -1,6 +1,7 @@
 import tkinter as tk
 import ttkbootstrap as ttk
 import datetime, os, sqlite3, csv, locale
+import comtypes.client
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from tkinter import messagebox, filedialog, Toplevel
@@ -365,6 +366,16 @@ def abrir_pdf(pdf_path):
     else:
         messagebox.showerror("Error", "El archivo PDF no existe.")
 
+def convert_to_pdf(docx_path) : 
+    word = comtypes.client.CreateObject("Word.Aplication")
+    word.Visible = False
+    doc = word.Documents.Open(os.path.abspath(docx_path))
+    pdf_path = docx_path.replace(".docx", ".pdf")
+    doc.SaveAs(pdf_path, FileFormat=17) # 17 = pdf
+    doc.Close()
+    word.Quit()
+    return pdf_path
+
 def page_check() :
     if len(pres_list) >= items_por_hoja :
         return True
@@ -425,7 +436,7 @@ def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
     doc_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
     doc_path = os.path.join(file, doc_name)
     doc.save(doc_path)
-    convert(doc_path, doc_path.replace(".docx", ".pdf"))
+    convert_to_pdf(doc_path)
     dc = doc_path
     os.remove(doc_path)
 
