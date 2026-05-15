@@ -1,16 +1,14 @@
 import os
 import sys
-import stat
-import shutil
 import subprocess
-import requests  # pip install requests
+import requests
 
 GITHUB_USER  = "Monsterinhouse"
 GITHUB_REPO  = "presgen"
 EXE_NAME     = "Presgen.exe"
-VERSION_FILE = "last_version.txt"  # Guarda el SHA del último build
+VERSION_FILE = "last_version.txt"
 
-API_URL      = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/releases"
+API_URL = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/releases"
 
 def get_last_known_version():
     if os.path.exists(VERSION_FILE):
@@ -32,11 +30,17 @@ def check_and_update():
         response = requests.get(API_URL, headers={"User-Agent": "presgen-updater"})
         response.raise_for_status()
         releases = response.json()
+
+        # Filtrar solo releases publicados (no draft, no prerelease)
+        releases = [r for r in releases if not r.get("draft") and not r.get("prerelease")]
+
         if not releases:
             print("[!] No hay releases disponibles todavía.")
             os.system("pause")
             return
-        release = releases[0]  # el más reciente
+
+        release = releases[0]  # el más reciente publicado
+
     except Exception as e:
         print(f"[X] No se pudo consultar GitHub: {e}")
         os.system("pause")
@@ -45,17 +49,20 @@ def check_and_update():
     latest_tag = release["tag_name"]
     last_known  = get_last_known_version()
 
+    print(f"    Ultima version remota : {latest_tag}")
+    print(f"    Version local         : {last_known}")
+
     if latest_tag == last_known:
-        print(f"[OK] Ya tenés la última versión ({latest_tag}).")
+        print(f"[OK] Ya tenes la ultima version ({latest_tag}).")
         os.system("timeout 5")
         return
 
-    # Hay versión nueva
-    print(f"[!] Nueva versión encontrada: {latest_tag}")
-    print(f"    Cambios: {release.get('body', 'Sin descripción')}")
+    # Hay version nueva
+    print(f"[!] Nueva version encontrada: {latest_tag}")
+    print(f"    Cambios: {release.get('body', 'Sin descripcion')}")
     print("Descargando...")
 
-    # Buscar el .exe entre los assets del release
+    # Buscar el .exe entre los assets
     asset_url = None
     for asset in release.get("assets", []):
         if asset["name"] == EXE_NAME:
@@ -63,11 +70,14 @@ def check_and_update():
             break
 
     if not asset_url:
-        print("[X] No se encontró el ejecutable en el release.")
+        print(f"[X] No se encontro '{EXE_NAME}' en el release.")
+        print("    Assets disponibles:")
+        for asset in release.get("assets", []):
+            print(f"      - {asset['name']}")
         os.system("pause")
         return
 
-    # Descargar el nuevo .exe
+    # Descargar
     try:
         dl = requests.get(asset_url, stream=True)
         dl.raise_for_status()
@@ -80,19 +90,27 @@ def check_and_update():
         os.system("pause")
         return
 
-    # Reemplazar el .exe actual
+    # Reemplazar con .bat para evitar el WinError 5
     try:
-        if os.path.exists(EXE_NAME):
-            os.remove(EXE_NAME)
-        os.rename(temp_exe, EXE_NAME)
+        current_exe = os.path.abspath(EXE_NAME)
+        bat_path = os.path.join(os.path.dirname(current_exe), "updater_temp.bat")
+        with open(bat_path, "w") as bat:
+            bat.write(f"""@echo off
+timeout /t 2 /nobreak >nul
+del "{current_exe}"
+move "{os.path.abspath(temp_exe)}" "{current_exe}"
+start "" "{current_exe}"
+del "%~f0"
+""")
+        save_version(latest_tag, release.get("body", ""))
+        print(f"\n[OK] Actualizacion a {latest_tag} completada. Relanzando...")
+        subprocess.Popen(bat_path, shell=True)
+        sys.exit(0)
+
     except Exception as e:
         print(f"[X] No se pudo reemplazar el ejecutable: {e}")
         os.system("pause")
         return
-
-    save_version(latest_tag, release.get("body", ""))
-    print(f"\n[200] Actualización a {latest_tag} completada con éxito.")
-    os.system("timeout 10")
 
 if __name__ == "__main__":
     check_and_update()
