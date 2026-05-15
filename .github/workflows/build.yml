@@ -6,6 +6,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      - name: Obtener Fecha Actual
+        run: echo "DATE=$(Get-Date -Format 'yyyy-MM-dd')" >> $env:GITHUB_ENV
+        shell: pwsh
+
       - name: Checkout del código
         uses: actions/checkout@v4
 
@@ -19,7 +23,7 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
 
-      - name: Compilar con PyInstaller # asdasdad
+      - name: Compilar con PyInstaller # --noconsole le saca la consola (duh)
         run: |
           pyinstaller --onefile --noconsole --name "presgen" bin/main.py
 
@@ -39,7 +43,7 @@ jobs:
           body: |
             Version Compilada Automaticamente
             Commit: ${{ github.event.head_commit.message }}
-            Fecha: ${{ github.run_id }}
+            Fecha: ${{ env.DATE }}
           draft: false
           prerelease: false
         env:
