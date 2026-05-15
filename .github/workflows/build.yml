@@ -19,7 +19,7 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
 
-      - name: Compilar con PyInstaller
+      - name: Compilar con PyInstaller # asdasdad
         run: |
           pyinstaller --onefile --name "presgen" bin/main.py
 
