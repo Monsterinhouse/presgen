@@ -282,7 +282,7 @@ def load_csv(): # Carga el archivo .csv al explorador
             except Exception as e:
                 messagebox.showerror("Error al leer archivo", f"{e}")
         else:
-            messagebox.showerror("El archivo seleccionado no es un CSV")
+            messagebox.showerror("ERROR!","El archivo seleccionado no es un CSV")
 
     abrir(callback_csv)
 
@@ -372,8 +372,9 @@ def convert_to_pdf(docx_path) : # Funcion para el funcionamiento de docx2pdf
     doc = word.Documents.Open(os.path.abspath(docx_path))
     pdf_path = docx_path.replace(".docx", ".pdf")
     doc.SaveAs(pdf_path, FileFormat=17) # 17 = pdf
-    doc.Close()
+    doc.Close(False)
     word.Quit()
+    comtypes.CoUninitialize()
     return pdf_path
 
 def page_check() :
@@ -436,8 +437,8 @@ def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
     doc_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
     doc_path = os.path.join(file, doc_name)
     doc.save(doc_path)
-    convert_to_pdf(doc_path)
-    dc = doc_path
+    pdf_result = convert_to_pdf(doc_path)
+    dc = pdf_result
     os.remove(doc_path)
 
 # Si hay mas de n elementos (var: items_por_hoja) en pres_list, genera otra hoja con los elementos restantes que estan en aux_pres_list
@@ -482,7 +483,7 @@ def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
 
     messagebox.showinfo("AVISO!", "Presupuesto Generado!")
 
-    abrir_pdf(dc.replace(".docx", ".pdf"))
+    abrir_pdf(dc)
 
     if page_check() :
         abrir_pdf(doc2_path.replace(".docx", ".pdf"))
