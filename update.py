@@ -8,7 +8,7 @@ GITHUB_REPO  = "presgen"
 EXE_NAME     = "Presgen.exe"
 VERSION_FILE = "last_version.txt"
 
-API_URL = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/releases"
+API_URL = f"https://api.github.com/repos/{GITHUB_USER}/{GITHUB_REPO}/releases/latest"
 
 def get_last_known_version():
     if os.path.exists(VERSION_FILE):
@@ -29,17 +29,7 @@ def check_and_update():
     try:
         response = requests.get(API_URL, headers={"User-Agent": "presgen-updater"})
         response.raise_for_status()
-        releases = response.json()
-
-        # Filtrar solo releases publicados (no draft, no prerelease)
-        releases = [r for r in releases if not r.get("draft") and not r.get("prerelease")]
-
-        if not releases:
-            print("[!] No hay releases disponibles todavía.")
-            os.system("pause")
-            return
-
-        release = releases[0]  # el más reciente publicado
+        release = response.json()  # ya devuelve un solo objeto, no lista
 
     except Exception as e:
         print(f"[X] No se pudo consultar GitHub: {e}")

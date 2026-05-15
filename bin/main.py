@@ -367,7 +367,7 @@ def abrir_pdf(pdf_path):
         messagebox.showerror("Error", "El archivo PDF no existe.")
 
 def convert_to_pdf(docx_path) : # Funcion para el funcionamiento de docx2pdf
-    word = comtypes.client.CreateObject("Word.Aplication")
+    word = comtypes.client.CreateObject("Word.Application")
     word.Visible = False
     doc = word.Documents.Open(os.path.abspath(docx_path))
     pdf_path = docx_path.replace(".docx", ".pdf")
