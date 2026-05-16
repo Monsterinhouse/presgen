@@ -1,7 +1,6 @@
 import tkinter as tk
 import ttkbootstrap as ttk
-import datetime, os, sqlite3, csv, locale
-import comtypes.client
+import datetime, os, sqlite3, csv, locale, subprocess
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from tkinter import messagebox, filedialog, Toplevel
@@ -367,26 +366,23 @@ def abrir_pdf(pdf_path):
         messagebox.showerror("Error", "El archivo PDF no existe.")
 
 def convert_to_pdf(docx_path):
-    word = comtypes.client.CreateObject("Word.Application")
-    word.Visible = False
-
     abs_docx = str(Path(docx_path).resolve())
-    temp_pdf = str(Path(docx_path).parent / "temp_output.pdf")
     final_pdf = abs_docx.replace(".docx", ".pdf")
-    encoded_pdf = abs_docx.replace(".docx", ".pdf").replace(" ", "%20")  # nombre que Word genera
-
-    doc = word.Documents.Open(abs_docx)
-    doc.SaveAs(temp_pdf, FileFormat=17)
-    doc.Close(False)
-    word.Quit()
-    comtypes.CoUninitialize()
-
-    # Si Word guardó con %20, renombralo; si no, renombrá el temp
-    if os.path.exists(encoded_pdf):
-        os.rename(encoded_pdf, final_pdf)
-    elif os.path.exists(temp_pdf):
-        os.rename(temp_pdf, final_pdf)
-
+    
+    script = f'''
+    $word = New-Object -ComObject Word.Application
+    $word.Visible = $false
+    $doc = $word.Documents.Open("{abs_docx}")
+    $doc.SaveAs("{final_pdf}", 17)
+    $doc.Close()
+    $word.Quit()
+    '''
+    
+    subprocess.run(
+        ["powershell", "-Command", script],
+        capture_output=True
+    )
+    
     return final_pdf
 
 def page_check() :
