@@ -91,18 +91,27 @@ def check_and_update():
     # Reemplazar con .bat para evitar el WinError 5
     try:
         current_exe = os.path.abspath(EXE_NAME)
+        temp_exe_path = os.path.abspath(temp_exe)
         bat_path = os.path.join(os.path.dirname(current_exe), "updater_temp.bat")
+        
         with open(bat_path, "w") as bat:
             bat.write(f"""@echo off
-timeout /t 2 /nobreak >nul
-del "{current_exe}"
-move "{os.path.abspath(temp_exe)}" "{current_exe}"
-start "" "{current_exe}"
-del "%~f0"
-""")
+    timeout /t 2 /nobreak >nul
+    takeown /f "{current_exe}" /a
+    icacls "{current_exe}" /grant Administrators:F
+    del /f "{current_exe}"
+    move "{temp_exe_path}" "{current_exe}"
+    cd /d "{os.path.dirname(current_exe)}"
+    start "" "{current_exe}"
+    del "%~f0"
+    """)
         save_version(latest_tag, release.get("body", ""))
         print(f"\n[OK] Actualizacion a {latest_tag} completada. Relanzando...")
-        subprocess.Popen(bat_path, shell=True)
+        # Correr el bat como administrador
+        subprocess.Popen(
+            ["powershell", "-Command", f"Start-Process '{bat_path}' -Verb RunAs"],
+            shell=True
+        )
         sys.exit(0)
 
     except Exception as e:
