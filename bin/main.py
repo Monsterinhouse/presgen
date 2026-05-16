@@ -369,16 +369,25 @@ def abrir_pdf(pdf_path):
 def convert_to_pdf(docx_path):
     word = comtypes.client.CreateObject("Word.Application")
     word.Visible = False
-    
-    abs_docx = "\\\\?\\" + str(Path(docx_path).resolve())  # ← fuerza ruta literal
-    abs_pdf  = str(Path(docx_path).resolve()).replace(".docx", ".pdf")
-    
+
+    abs_docx = str(Path(docx_path).resolve())
+    temp_pdf = str(Path(docx_path).parent / "temp_output.pdf")
+    final_pdf = abs_docx.replace(".docx", ".pdf")
+    encoded_pdf = abs_docx.replace(".docx", ".pdf").replace(" ", "%20")  # nombre que Word genera
+
     doc = word.Documents.Open(abs_docx)
-    doc.SaveAs(abs_pdf, FileFormat=17)
+    doc.SaveAs(temp_pdf, FileFormat=17)
     doc.Close(False)
     word.Quit()
     comtypes.CoUninitialize()
-    return abs_pdf
+
+    # Si Word guardó con %20, renombralo; si no, renombrá el temp
+    if os.path.exists(encoded_pdf):
+        os.rename(encoded_pdf, final_pdf)
+    elif os.path.exists(temp_pdf):
+        os.rename(temp_pdf, final_pdf)
+
+    return final_pdf
 
 def page_check() :
     if len(pres_list) >= items_por_hoja :
