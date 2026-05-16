@@ -1,6 +1,6 @@
 import tkinter as tk
 import ttkbootstrap as ttk
-import datetime, os, sqlite3, csv, locale, subprocess
+import datetime, os, sqlite3, csv, locale, subprocess, sys
 from docxtpl import DocxTemplate
 from docx2pdf import convert
 from tkinter import messagebox, filedialog, Toplevel
@@ -10,8 +10,13 @@ from ddbb import nventana
 from filetree import abrir
 from ttkbootstrap.constants import *
 
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # DDBB Conx
-conn = sqlite3.connect('./files/presdb.db')
+conn = sqlite3.connect(os.path.join(BASE_DIR, 'files', 'presdb.db'))
 cur = conn.cursor()
 
 def query() :
@@ -27,14 +32,14 @@ app = tk.Tk()
 app.title ("PresGen V1.9-P (no console)")
 app.resizable (False, False)
 style = ttk.Style ("flatly")
-img = tk.PhotoImage (file= "./specs/media/PressGenLogo.png")
+img = tk.PhotoImage(file=os.path.join(BASE_DIR, "specs", "media", "PressGenLogo.png"))
 app.iconphoto(False, img)
 app.config (bg="grey")
 locale.setlocale(locale.LC_ALL, 'es_AR.UTF-8')
 
 # Varibles / Lists / Misc
-idfile = Path("./files/id.txt")
-savefile = './files/savepath.txt'
+idfile = Path(BASE_DIR) / "files" / "id.txt"
+savefile = os.path.join(BASE_DIR, 'files', 'savepath.txt')
 t = datetime.datetime.now()
 pid = 0
 items_por_hoja = 35
@@ -410,7 +415,7 @@ def page_check() :
 
 def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
     global pid, eid, doc_path
-    doc = DocxTemplate("./files/Pres_Template.docx")
+    doc = DocxTemplate(os.path.join(BASE_DIR, "files", "Pres_Template.docx"))
     nya = e1.get().upper() + " " + e2.get().upper()
     nya_file = nya.replace(" ", "_")  # ← solo para el nombre del archivo
     domicilio = e3.get().upper()
