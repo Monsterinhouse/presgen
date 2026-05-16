@@ -366,15 +366,15 @@ def abrir_pdf(pdf_path):
     else:
         messagebox.showerror("Error", "El archivo PDF no existe.")
 
-def convert_to_pdf(docx_path) : # Funcion para el funcionamiento de docx2pdf
+def convert_to_pdf(docx_path):
     word = comtypes.client.CreateObject("Word.Application")
     word.Visible = False
-
-    abs_docx = str(Path(docx_path).resolve())
-    abs_pdf = abs_docx.replace(".docx", ".pdf")
-
+    
+    abs_docx = "\\\\?\\" + str(Path(docx_path).resolve())  # ← fuerza ruta literal
+    abs_pdf  = str(Path(docx_path).resolve()).replace(".docx", ".pdf")
+    
     doc = word.Documents.Open(abs_docx)
-    doc.SaveAs(abs_pdf, FileFormat=17) # 17 = pdf
+    doc.SaveAs(abs_pdf, FileFormat=17)
     doc.Close(False)
     word.Quit()
     comtypes.CoUninitialize()
