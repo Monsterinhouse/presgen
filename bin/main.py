@@ -369,31 +369,34 @@ def convert_to_pdf(docx_path):
     abs_docx = str(Path(docx_path).resolve())
     carpeta = str(Path(docx_path).parent)
     
-    # Nombre temporal sin ningún espacio ni caracter especial
-    temp_docx = os.path.join(carpeta, "tmp_conv.docx")
-    temp_pdf  = os.path.join(carpeta, "tmp_conv.pdf")
+    temp_docx = os.path.join(carpeta, "tmpconv.docx")  # sin guion bajo
+    temp_pdf  = os.path.join(carpeta, "tmpconv.pdf")
     final_pdf = abs_docx.replace(".docx", ".pdf")
 
-    # Copiamos el docx a un nombre temporal limpio
     import shutil
     shutil.copy2(abs_docx, temp_docx)
+
+    # Escapar barras para PowerShell
+    ps_temp_docx = temp_docx.replace("/", "\\")
+    ps_temp_pdf  = temp_pdf.replace("/", "\\")
 
     script = f'''
     $word = New-Object -ComObject Word.Application
     $word.Visible = $false
-    $doc = $word.Documents.Open("{temp_docx}")
-    $doc.SaveAs("{temp_pdf}", 17)
+    $doc = $word.Documents.Open("{ps_temp_docx}")
+    $doc.SaveAs("{ps_temp_pdf}", 17)
     $doc.Close()
     $word.Quit()
     '''
 
-    subprocess.run(["powershell", "-Command", script], capture_output=True)
+    subprocess.run(
+        ["C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe", "-Command", script],
+        capture_output=True
+    )
 
-    # Word nunca vio el nombre con espacios, renombramos el PDF final
     if os.path.exists(temp_pdf):
         os.rename(temp_pdf, final_pdf)
     
-    # Limpiamos el docx temporal
     if os.path.exists(temp_docx):
         os.remove(temp_docx)
 
