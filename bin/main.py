@@ -369,13 +369,16 @@ def abrir_pdf(pdf_path):
 def convert_to_pdf(docx_path) : # Funcion para el funcionamiento de docx2pdf
     word = comtypes.client.CreateObject("Word.Application")
     word.Visible = False
-    doc = word.Documents.Open(os.path.abspath(docx_path))
-    pdf_path = docx_path.replace(".docx", ".pdf")
-    doc.SaveAs(pdf_path, FileFormat=17) # 17 = pdf
+
+    abs_docx = str(Path(docx_path).resolve())
+    abs_pdf = abs_docx.replace(".docx", ".pdf")
+
+    doc = word.Documents.Open(abs_docx)
+    doc.SaveAs(abs_pdf, FileFormat=17) # 17 = pdf
     doc.Close(False)
     word.Quit()
     comtypes.CoUninitialize()
-    return pdf_path
+    return abs_pdf
 
 def page_check() :
     if len(pres_list) >= items_por_hoja :
