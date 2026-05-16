@@ -29,9 +29,14 @@ jobs:
           if (Test-Path build) { Remove-Item -Recurse -Force build }
         shell: pwsh
 
+      - name: Convertir PNG a ICO
+        run: |
+          pip install Pillow
+          python -c "from PIL import Image; img = Image.open('specs/media/PressGenLogo.png'); img.save('specs/media/PressGenLogo.ico')"
+
       - name: Compilar con PyInstaller # --noconsole le saca la consola (duh)
         run: |
-          pyinstaller --onefile --noconsole --name "presgen" bin/main.py
+          pyinstaller --onefile --noconsole --name "Presgen" --icon "specs/media/PressGenLogo.ico" bin/main.py
 
       - name: Verificar ejecutable # ← ahora DESPUÉS de compilar
         run: dir dist\
