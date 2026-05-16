@@ -14,7 +14,7 @@ def get_last_known_version():
     if os.path.exists(VERSION_FILE):
         with open(VERSION_FILE, "r", encoding="utf-8") as f:
             lineas = f.read().splitlines()
-            return lineas[0] if lineas else ""
+            return lineas[0].strip() if lineas else ""  # ← .strip() acá
     return ""
 
 def save_version(tag, mensaje=""):
@@ -27,20 +27,28 @@ def check_and_update():
     print("Buscando actualizaciones...")
 
     try:
-        response = requests.get(API_URL, headers={"User-Agent": "presgen-updater"})
+        response = requests.get(
+            API_URL,
+            headers={
+                "User-Agent": "presgen-updater",
+                "Cache-Control": "no-cache",  # ← headers anti-cache
+                "Pragma": "no-cache"
+            }
+        )
         response.raise_for_status()
-        release = response.json()  # ya devuelve un solo objeto, no lista
+        release = response.json()
 
     except Exception as e:
         print(f"[X] No se pudo consultar GitHub: {e}")
         os.system("pause")
         return
 
-    latest_tag = release["tag_name"]
+    latest_tag = release["tag_name"].strip()  # ← .strip() acá
     last_known  = get_last_known_version()
 
-    print(f"    Ultima version remota : {latest_tag}")
-    print(f"    Version local         : {last_known}")
+    print(f"[DEBUG] Tag remoto raw: '{latest_tag}'")    # ← debugs
+    print(f"[DEBUG] Version local raw: '{last_known}'")
+    print(f"[DEBUG] Son iguales: {latest_tag == last_known}")
 
     if latest_tag == last_known:
         print(f"[OK] Ya tenes la ultima version ({latest_tag}).")
@@ -103,4 +111,8 @@ del "%~f0"
         return
 
 if __name__ == "__main__":
+    print(f"[DEBUG] CWD: {os.getcwd()}")
+    print(f"[DEBUG] __file__: {os.path.abspath(__file__)}")
+    print(f"[DEBUG] EXE_NAME path: {os.path.abspath(EXE_NAME)}")
+    print(f"[DEBUG] Presgen.exe existe: {os.path.exists(os.path.abspath(EXE_NAME))}")
     check_and_update()
