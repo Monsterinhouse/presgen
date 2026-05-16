@@ -399,6 +399,7 @@ def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
     global pid, eid, doc_path
     doc = DocxTemplate("./files/Pres_Template.docx")
     nya = e1.get().upper() + " " + e2.get().upper()
+    nya_file = nya.replace(" ", "_")  # ← solo para el nombre del archivo
     domicilio = e3.get().upper()
     telefono = e4.get()
     vehiculo = e5.get().upper()
@@ -446,7 +447,7 @@ def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
         messagebox.showwarning("AVISO!", "No se selecciono una carpeta")
         return
 
-    doc_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
+    doc_name = f"Presupuesto_{str(pid)}_{nya_file}_{t.strftime('%d-%m-%Y-%H%M%S')}.docx"
     doc_path = os.path.join(file, doc_name)
     doc.save(doc_path)
     pdf_result = convert_to_pdf(doc_path)
@@ -486,7 +487,7 @@ def gen_pres() : # Genera el presupuesto y lo manda al PDF de impresion
            "pres_list": aux_pres_list
             })
         
-        doc2_name = f"Presupuesto_{str(pid)}_{nya}_{t.strftime('%d-%m-%Y-%H%M%S')}_EXTRA.docx"
+        doc2_name = f"Presupuesto_{str(pid)}_{nya_file}_{t.strftime('%d-%m-%Y-%H%M%S')}_EXTRA.docx"
         doc2_path = os.path.join(file, doc2_name)
         doc2.save(doc2_path)
         convert(doc2_path, doc2_path.replace(".docx", ".pdf"))
