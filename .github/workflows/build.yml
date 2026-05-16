@@ -23,6 +23,12 @@ jobs:
           pip install pyinstaller
           pip install -r requirements.txt
 
+      - name: Limpiar build anterior
+        run: |
+          if (Test-Path dist) { Remove-Item -Recurse -Force dist }
+          if (Test-Path build) { Remove-Item -Recurse -Force build }
+        shell: pwsh
+
       - name: Compilar con PyInstaller # --noconsole le saca la consola (duh)
         run: |
           pyinstaller --onefile --noconsole --name "presgen" bin/main.py
