@@ -95,21 +95,23 @@ def check_and_update():
         bat_path = os.path.join(os.path.dirname(current_exe), "updater_temp.bat")
         
         with open(bat_path, "w") as bat:
-            bat.write(f"""@echo off
-    timeout /t 2 /nobreak >nul
-    takeown /f "{current_exe}" /a
-    icacls "{current_exe}" /grant Administrators:F
-    del /f "{current_exe}"
-    move "{temp_exe_path}" "{current_exe}"
-    cd /d "{os.path.dirname(current_exe)}"
-    start "" "{current_exe}"
-    del "%~f0"
-    """)
+             bat.write(f"""@echo off
+timeout /t 2 /nobreak >nul
+taskkill /f /im Presgen.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+del /f /q "{current_exe}"
+move /y "{temp_exe_path}" "{current_exe}"
+cd /d "{os.path.dirname(current_exe)}"
+start "" "{current_exe}"
+del "%~f0"
+""")
+            
         save_version(latest_tag, release.get("body", ""))
         print(f"\n[OK] Actualizacion a {latest_tag} completada. Relanzando...")
         # Correr el bat como administrador
         subprocess.Popen(
-            ["powershell", "-Command", f"Start-Process '{bat_path}' -Verb RunAs"],
+        ["powershell", "-Command",
+        f"Start-Process -FilePath '{bat_path}' -Verb RunAs -WindowStyle Hidden"],
             shell=True
         )
         sys.exit(0)
